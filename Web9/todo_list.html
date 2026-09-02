@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-do List</title>
+    <link rel="stylesheet" href="./shared.css" />
+    <link rel="stylesheet" href="./todo_list.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <link rel="stylesheet" href="./popup.css"/>
+</head>
+<body>
+
+<aside class="sidebar">
+    <button class="sidebar-btn" onclick="openCreateModal()">
+        <div class="create-icon">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+        <span>create</span>
+    </button>
+
+    <nav class="sidebar-nav">
+        <a href="Dashboard.html" class="nav-item" data-page="dashboard">
+            <div class="nav-icon"><i class="fa-solid fa-house"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="Calendar.html" class="nav-item" data-page="calendar">
+            <div class="nav-icon">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+            <span>Calendar</span>
+        </a>
+
+        <a href="Daily_Planner.html" class="nav-item" data-page="planner">
+            <div class="nav-icon">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <span>Daily<br>Planner</span>
+        </a>
+
+        <a href="todo_list.html" class="nav-item" data-page="todo">
+            <div class="nav-icon">
+                <i class="fa-solid fa-list-ol"></i>
+            </div>
+            <span>To-do</span>
+        </a>
+
+        <a href="habit_tracker.html" class="nav-item" data-page="habit">
+            <div class="nav-icon">
+                <i class="fa-regular fa-circle-check"></i>
+            </div>
+            <span>Habit<br>Tracker</span>
+        </a>
+    </nav>
+
+    <button class="nav-item profile-btn" onclick="toggleProfile()">
+        <div class="nav-icon">
+            <i class="fa-regular fa-circle-user"></i>
+        </div>
+    </button>
+</aside>
+
+<main class="main-content">
+    <div class="todo-center-wrapper">
+        <div class="todo-page-header">
+            <div><p class="todo-eyebrow">Tasks</p><h1 class="todo-title">To-do List</h1></div>
+            <button class="todo-add-button" onclick="openTodoModalForCreate()"><i class="fa-solid fa-plus"></i> Add task</button>
+        </div>
+        <div class="todo-section-heading"><h2>Active</h2><span id="active-count">0</span></div>
+        <div class="box"></div>
+        <details class="completed-panel" id="completed-panel">
+            <summary><span>Completed</span><span class="completed-count" id="completed-count">0</span></summary>
+            <div id="completed-box" class="completed-box"></div>
+        </details>
+    </div>
+</main>
+
+<div id="createModal" class="modal-overlay">
+    <div class="modal-card">
+        <button class="modal-close-btn" onclick="closeCreateModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h3>New</h3>
+
+        <div class="create-options">
+            <div class="option-card" onclick="selectOption(this, 'event')">
+                <span>Event</span>
+            </div>
+
+            <div class="option-card" onclick="selectOption(this, 'todo')">
+                <span>To-do List</span>
+            </div>
+
+            <div class="option-card" onclick="selectOption(this, 'habit')">
+                <span>Habit Tracker</span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="confirm-btn" onclick="confirmCreation()">
+                <i class="fa-solid fa-check"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="createTodoModal" class="modal-overlay">
+    <div class="modal-card todo-modal-card">
+
+        <div class="todo-modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="todoModalTitle" class="todo-modal-title" style="margin: 0;">Create To-do List</h3>
+            <i class="fa-solid fa-xmark todo-icon-btn" onclick="closeTodoModal()" style="cursor: pointer;"></i>
+        </div>
+
+        <div class="create-options todo-options">
+            <div class="input-group todo-input-group">
+                <label class="todo-label">Title</label>
+                <input type="text" id="todoTitleInput" class="todo-text-input" oninput="checkTitleInput()" placeholder="Add your task here">
+            </div>
+
+            <!-- Date 面板（与 Daily Planner 一致） -->
+            <div class="input-group todo-input-group cp-trigger" onclick="todoTogglePicker('todo-date-picker')">
+                <label class="todo-label">Date</label>
+                <span id="todo-date-display" class="cp-display">Select date</span>
+            </div>
+            <input type="hidden" id="todoDateInput" value="">
+            <div class="cp-panel" id="todo-date-picker">
+                <div class="cp-nav">
+                    <button type="button" onclick="todoCpShiftMonth(-1)">&#9664;</button>
+                    <span id="todo-cp-month-label"></span>
+                    <button type="button" onclick="todoCpShiftMonth(1)">&#9654;</button>
+                </div>
+                <div class="cp-weekdays">
+                    <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                </div>
+                <div class="cp-days" id="todo-cp-days"></div>
+                <button type="button" class="cp-clear-btn" onclick="todoClearDate()">Clear date</button>
+            </div>
+
+            <!-- Color 面板（与 Daily Planner 一致） -->
+            <div class="input-group todo-input-group cp-trigger" onclick="todoTogglePicker('todo-color-picker')">
+                <label class="todo-label">Color</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span id="todo-color-hex" class="cp-display">#F2D7D9</span>
+                    <div id="todo-color-swatch-dot" style="width:22px;height:22px;border-radius:50%;background:#F2D7D9;border:2px solid var(--border);flex-shrink:0;"></div>
+                </div>
+            </div>
+            <input type="hidden" id="todoColorInput" value="#F2D7D9">
+            <div class="cp-panel" id="todo-color-picker">
+                <div class="cp-color-preview">
+                    <div id="todo-color-preview-box"></div>
+                    <span id="todo-color-preview-hex"></span>
+                </div>
+                <div class="cp-color-presets" id="todo-swatches"></div>
+                <div class="cp-color-free">
+                    <label class="cp-color-free-label">Custom</label>
+                    <input type="color" id="todoColorNative" class="cp-color-native" value="#F2D7D9">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions todo-actions todo-modal-actions">
+            <button id="todoDeleteBtn" class="todo-action-btn delete-btn" onclick="deleteTodoItem()">Delete</button>
+            <button id="todoSaveBtn" class="todo-action-btn save-btn" onclick="saveTodoItem()" disabled>Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedType = null;
+    let currentEditingTodoId = null;
+
+    window.addEventListener('load', async function() {
+        try { await PlannerData.loadTodos(); } catch (error) { console.error(error); }
+        renderTodos();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'new_todo') {
+            openTodoModalForCreate();
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+
+    // ==========================================
+    // 2. ฟังก์ชันวาดกล่อง To-do (หัวใจหลักของการจำข้อมูล)
+    // ==========================================
+
+    // ── Todo 颜色和日期面板 ──
+    const TODO_COLORS = [
+        '#F2D7D9','#E8BFC2','#E2D4E0','#D4DEF0',
+        '#D0E8D8','#B5C4A0','#F5E6C8','#E8D5B0',
+        '#D8C4B8','#C4D4D8','#E0D0E8','#F0E0C8'
+    ];
+
+    let todoDate = '';
+    let todoCpYear, todoCpMonth;
+
+    function todoTogglePicker(id) {
+        ['todo-date-picker','todo-color-picker'].forEach(pid => {
+            if (pid !== id) document.getElementById(pid).classList.remove('cp-open');
+        });
+        document.getElementById(id).classList.toggle('cp-open');
+        if (id === 'todo-date-picker') todoRenderCpDays();
+        if (id === 'todo-color-picker') todoRenderColorPicker(document.getElementById('todoColorInput').value || '#F2D7D9');
+    }
+
+    function todoClosePickers() {
+        ['todo-date-picker','todo-color-picker'].forEach(pid => {
+            document.getElementById(pid).classList.remove('cp-open');
+        });
+    }
+
+    // ── 日期面板 ──
+    function todoCpInit() {
+        const now = new Date();
+        todoCpYear  = now.getFullYear();
+        todoCpMonth = now.getMonth();
+    }
+
+    function todoCpShiftMonth(dir) {
+        todoCpMonth += dir;
+        if (todoCpMonth < 0)  { todoCpMonth = 11; todoCpYear--; }
+        if (todoCpMonth > 11) { todoCpMonth = 0;  todoCpYear++; }
+        todoRenderCpDays();
+    }
+
+    function todoRenderCpDays() {
+        const MONTHS = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+        document.getElementById('todo-cp-month-label').textContent = MONTHS[todoCpMonth] + ' ' + todoCpYear;
+        const container = document.getElementById('todo-cp-days');
+        container.innerHTML = '';
+        const firstDay = new Date(todoCpYear, todoCpMonth, 1).getDay();
+        const offset   = firstDay === 0 ? 6 : firstDay - 1;
+        const total    = new Date(todoCpYear, todoCpMonth + 1, 0).getDate();
+        const today    = new Date();
+        // 解析当前选中日期 (MM/DD/YYYY)
+        let selDay = -1, selMon = -1, selYr = -1;
+        if (todoDate) {
+            const p = todoDate.split('/');
+            selMon = parseInt(p[0]) - 1;
+            selDay = parseInt(p[1]);
+            selYr  = parseInt(p[2]);
+        }
+        for (let i = 0; i < offset; i++) container.appendChild(document.createElement('span'));
+        for (let d = 1; d <= total; d++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = d;
+            btn.className = 'cp-day';
+            const isToday = (d === today.getDate() && todoCpMonth === today.getMonth() && todoCpYear === today.getFullYear());
+            const isSel   = (d === selDay && todoCpMonth === selMon && todoCpYear === selYr);
+            if (isToday) btn.classList.add('cp-today');
+            if (isSel)   btn.classList.add('cp-selected');
+            btn.addEventListener('click', () => {
+                todoDate = String(todoCpMonth+1).padStart(2,'0') + '/' + String(d).padStart(2,'0') + '/' + todoCpYear;
+                // 存储为 YYYY-MM-DD 供内部使用
+                const isoDate = todoCpYear + '-' + String(todoCpMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+                document.getElementById('todoDateInput').value = isoDate;
+                document.getElementById('todo-date-display').textContent =
+                    new Date(todoCpYear, todoCpMonth, d).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+                todoClosePickers();
+                todoRenderCpDays();
+            });
+            container.appendChild(btn);
+        }
+    }
+
+    function todoClearDate() {
+        todoDate = '';
+        document.getElementById('todoDateInput').value = '';
+        document.getElementById('todo-date-display').textContent = 'Select date';
+        todoClosePickers();
+    }
+
+    // ── 颜色面板 ──
+    function todoRenderColorPicker(selectedColor) {
+        document.getElementById('todoColorInput').value = selectedColor;
+        document.getElementById('todo-color-hex').textContent = selectedColor.toUpperCase();
+        document.getElementById('todo-color-swatch-dot').style.background = selectedColor;
+        const previewBox = document.getElementById('todo-color-preview-box');
+        if (previewBox) {
+            previewBox.style.background = selectedColor;
+            document.getElementById('todo-color-preview-hex').textContent = selectedColor.toUpperCase();
+        }
+        const container = document.getElementById('todo-swatches');
+        if (!container) return;
+        container.innerHTML = '';
+        TODO_COLORS.forEach(col => {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'cp-swatch' + (col.toLowerCase() === selectedColor.toLowerCase() ? ' cp-swatch-selected' : '');
+            dot.style.background = col;
+            dot.title = col;
+            dot.addEventListener('click', () => todoRenderColorPicker(col));
+            container.appendChild(dot);
+        });
+        const native = document.getElementById('todoColorNative');
+        if (native) {
+            native.value = selectedColor;
+            native.oninput = function() { todoRenderColorPicker(this.value); };
+        }
+    }
+
+    function todoSetColor(selected) { todoRenderColorPicker(selected); }
+
+    function renderTodos() {
+        const box = document.querySelector('.box');
+        const completedBox = document.getElementById('completed-box');
+        if (!box || !completedBox) return;
+        const allTodos = PlannerData.getTodos();
+        const todos = allTodos
+            .filter(todo => !todo.done)
+            .sort((a, b) => {
+                if (a.date && b.date) return a.date.localeCompare(b.date);
+                if (a.date) return -1;
+                if (b.date) return 1;
+                return 0;
+            });
+
+        box.innerHTML = '';
+        document.getElementById('active-count').textContent = todos.length;
+        if (todos.length === 0) {
+            box.innerHTML = '<div class="empty-state-card"><i class="fa-solid fa-check"></i><span>No unfinished tasks</span></div>';
+        }
+
+        todos.forEach(todo => {
+            const newLabel = document.createElement('label');
+            newLabel.className = 'todo-item';
+            newLabel.style.display = 'flex';
+            newLabel.style.justifyContent = 'space-between';
+            newLabel.style.alignItems = 'center';
+            newLabel.style.borderRadius = '30px';
+            newLabel.style.padding = '15px 20px';
+            newLabel.style.marginBottom = '15px';
+            newLabel.style.backgroundColor = todo.color;
+
+            const content = document.createElement('div');
+            content.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:4px;';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            const circle = document.createElement('span');
+            circle.className = 'circle';
+            circle.innerHTML = '<i class="fa-solid fa-check"></i>';
+            const taskName = document.createElement('span');
+            taskName.className = 'task-name';
+            taskName.style.cssText = 'margin-left:15px;font-weight:bold;';
+            taskName.textContent = todo.title;
+            content.append(cb, circle, taskName);
+
+            if (todo.date) {
+                const dateTag = document.createElement('span');
+                dateTag.className = 'todo-date-tag';
+                dateTag.textContent = formatDateDisplay(todo.date);
+                content.appendChild(dateTag);
+            }
+
+            const actions = document.createElement('div');
+            actions.className = 'action-btns';
+            const editIcon = document.createElement('i');
+            editIcon.className = 'fa-solid fa-pen';
+            editIcon.style.cssText = 'cursor:pointer;color:#5C5452;font-size:16px;';
+            editIcon.setAttribute('role', 'button');
+            editIcon.setAttribute('aria-label', `Edit ${todo.title}`);
+            editIcon.addEventListener('click', event => editFromIcon(event, todo.id));
+            actions.appendChild(editIcon);
+            newLabel.append(content, actions);
+
+            // 每次完成只处理一次；锁定复选框并直接移除节点，避免重复 append。
+            cb.addEventListener('change', async function() {
+                if (!this.checked || this.dataset.busy === 'true') return;
+                this.dataset.busy = 'true';
+                this.disabled = true;
+                try {
+                    await PlannerData.setTodoDone(todo.id, true);
+                    newLabel.classList.add('todo-completing');
+                    setTimeout(renderTodos, 420);
+                    window.PlannerUI?.toast('Task completed', {
+                        type: 'success',
+                        actionLabel: 'Undo',
+                        onAction: async () => {
+                            await PlannerData.setTodoDone(todo.id, false);
+                            renderTodos();
+                        }
+                    });
+                } catch (error) {
+                    this.checked = false;
+                    this.disabled = false;
+                    this.dataset.busy = 'false';
+                    alert(error.message);
+                }
+            });
+
+            box.appendChild(newLabel);
+        });
+
+        renderCompletedTodos(allTodos.filter(todo => todo.done), completedBox);
+    }
+
+    function renderCompletedTodos(todos, container) {
+        container.innerHTML = '';
+        document.getElementById('completed-count').textContent = todos.length;
+        if (todos.length === 0) {
+            container.innerHTML = '<p class="completed-empty">Completed tasks will appear here.</p>';
+            return;
+        }
+        todos.forEach(todo => {
+            const row = document.createElement('div');
+            row.className = 'completed-item';
+            const restore = document.createElement('button');
+            restore.type = 'button'; restore.className = 'completed-check';
+            restore.innerHTML = '<i class="fa-solid fa-check"></i>';
+            restore.setAttribute('aria-label', `Restore ${todo.title}`);
+            restore.addEventListener('click', async () => {
+                if (restore.disabled) return; restore.disabled = true;
+                try {
+                    await PlannerData.setTodoDone(todo.id, false);
+                    renderTodos();
+                    window.PlannerUI?.toast('Task restored', 'success');
+                } catch (error) { alert(error.message); restore.disabled = false; }
+            });
+            const name = document.createElement('span'); name.className = 'completed-name'; name.textContent = todo.title;
+            const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'completed-delete';
+            remove.innerHTML = '<i class="fa-regular fa-trash-can"></i>'; remove.setAttribute('aria-label', `Delete ${todo.title}`);
+            remove.addEventListener('click', async () => {
+                if (remove.disabled) return; remove.disabled = true;
+                try { await PlannerData.deleteTodo(todo.id); renderTodos(); window.PlannerUI?.toast('Task deleted'); }
+                catch (error) { alert(error.message); remove.disabled = false; }
+            });
+            row.append(restore, name, remove); container.appendChild(row);
+        });
+    }
+
+    // 将 "2026-06-09" 格式转为 "Jun 9" 显示
+    function formatDateDisplay(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr + 'T00:00:00');
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    // ==========================================
+    // 3. จัดการหน้าต่างหลัก (เลือกประเภท)
+    // ==========================================
+    function openCreateModal() {
+        resetSelection();
+        document.getElementById('createModal').classList.add('active');
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.remove('active');
+    }
+
+    function selectOption(element, type) {
+        const options = document.querySelectorAll('.option-card');
+        options.forEach(opt => opt.classList.remove('selected', 'type-event', 'type-todo', 'type-habit'));
+        element.classList.add('selected', `type-${type}`);
+        selectedType = type;
+    }
+
+    function resetSelection() {
+        selectedType = null;
+        document.querySelectorAll('.option-card').forEach(opt => {
+            opt.classList.remove('selected', 'type-event', 'type-todo', 'type-habit');
+        });
+    }
+
+    function confirmCreation() {
+        if (!selectedType) {
+            alert('Please select an item type first!');
+            return;
+        }
+
+        closeCreateModal();
+
+        if (selectedType === 'todo') {
+            if (window.location.pathname.includes('todo_list.html')) {
+                openTodoModalForCreate();
+            } else {
+                window.location.href = 'todo_list.html?action=new_todo';
+            }
+        } else if (selectedType === 'event') {
+            if (!window.location.pathname.includes('Daily_Planner.html')) {
+                window.location.href = 'Daily_Planner.html?action=new_event';
+            }
+        } else if (selectedType === 'habit') {
+            if (!window.location.pathname.includes('habit_tracker.html')) {
+                window.location.href = 'habit_tracker.html?action=new_habit';
+            }
+        }
+    }
+
+    // ==========================================
+    // 4. จัดการ To-do Modal (หน้าต่างกรอกข้อมูล)
+    // ==========================================
+    function closeTodoModal() {
+        document.getElementById('createTodoModal').classList.remove('active');
+    }
+
+    // ควบคุมการเปิด/ปิด ปุ่ม Save
+    function checkTitleInput() {
+        const titleInput = document.getElementById('todoTitleInput').value.trim();
+        const saveBtn = document.getElementById('todoSaveBtn');
+        saveBtn.disabled = (titleInput === '');
+    }
+
+    // เปิดหน้าต่างตอนสร้างงานใหม่
+    function openTodoModalForCreate() {
+        currentEditingTodoId = null;
+        document.getElementById('todoModalTitle').innerText = 'Create To-do List';
+        document.getElementById('todoTitleInput').value = '';
+        todoDate = '';
+        todoCpInit();
+        document.getElementById('todoDateInput').value = '';
+        document.getElementById('todo-date-display').textContent = 'Select date';
+        todoClosePickers();
+        todoRenderColorPicker('#F2D7D9');
+
+        document.getElementById('todoDeleteBtn').style.display = 'none';
+        document.getElementById('todoSaveBtn').style.display = 'block';
+
+        checkTitleInput();
+        document.getElementById('createTodoModal').classList.add('active');
+    }
+
+    // เปิดหน้าต่างตอนกดไอคอนรูปดินสอเพื่อแก้ไข
+    function openTodoModalForEdit(id) {
+        currentEditingTodoId = id;
+        const todo = PlannerData.getTodos().find(item => String(item.id) === String(id));
+        if (!todo) return;
+
+        document.getElementById('todoModalTitle').innerText = 'Edit To-do List';
+        document.getElementById('todoTitleInput').value = todo.title;
+        // 恢复日期
+        todoDate = '';
+        todoCpInit();
+        if (todo.date) {
+            // todo.date 存储为 YYYY-MM-DD
+            const parts = todo.date.split('-');
+            if (parts.length === 3) {
+                todoCpYear  = parseInt(parts[0]);
+                todoCpMonth = parseInt(parts[1]) - 1;
+                todoDate = parts[1] + '/' + parts[2] + '/' + parts[0];
+                document.getElementById('todo-date-display').textContent =
+                    new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]))
+                        .toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+            }
+        } else {
+            document.getElementById('todo-date-display').textContent = 'Select date';
+        }
+        document.getElementById('todoDateInput').value = todo.date || '';
+        todoClosePickers();
+        todoRenderColorPicker(todo.color);
+
+        document.getElementById('todoDeleteBtn').style.display = 'block';
+        document.getElementById('todoSaveBtn').style.display = 'block';
+
+        checkTitleInput();
+        document.getElementById('createTodoModal').classList.add('active');
+    }
+
+    function editFromIcon(event, id) {
+        event.preventDefault();
+        event.stopPropagation();
+        openTodoModalForEdit(id);
+    }
+
+    // ==========================================
+    // 5. บันทึกและลบข้อมูลลงสมุดโน้ต (LocalStorage)
+    // ==========================================
+    async function saveTodoItem() {
+        const titleInput = document.getElementById('todoTitleInput').value.trim();
+        const colorInput = document.getElementById('todoColorInput').value;
+        const dateInput  = document.getElementById('todoDateInput').value; // 可为空
+
+        if (titleInput === '') return;
+
+        const saveButton = document.getElementById('todoSaveBtn');
+        if (saveButton.disabled || saveButton.dataset.busy === 'true') return;
+        saveButton.dataset.busy = 'true';
+        saveButton.disabled = true;
+        try {
+            const existing = PlannerData.getTodos().find(item => String(item.id) === String(currentEditingTodoId));
+            await PlannerData.saveTodo({
+                ...(existing || {}),
+                id: existing?.id,
+                title: titleInput,
+                color: colorInput,
+                date: dateInput,
+                done: existing?.done || false
+            });
+            closeTodoModal();
+            renderTodos();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            saveButton.dataset.busy = 'false';
+            checkTitleInput();
+        }
+    }
+
+    async function deleteTodoItem() {
+        if (currentEditingTodoId === null) return closeTodoModal();
+        const button = document.getElementById('todoDeleteBtn');
+        if (button.dataset.busy === 'true') return;
+        button.dataset.busy = 'true';
+        try {
+            await PlannerData.deleteTodo(currentEditingTodoId);
+            closeTodoModal();
+            renderTodos();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            button.dataset.busy = 'false';
+        }
+    }
+
+    // ==========================================
+    // 6. การคลิกพื้นที่ว่างเพื่อปิดหน้าต่าง Modal
+    // ==========================================
+    window.onclick = function(event) {
+        const modal1 = document.getElementById('createModal');
+        const modal2 = document.getElementById('createTodoModal');
+        if (event.target === modal1) closeCreateModal();
+        if (event.target === modal2) closeTodoModal();
+    }
+</script>
+
+<!-- ==========================================
+     登录 / 注册 / 个人资料 弹窗
+     ========================================== -->
+
+<!-- 登录弹窗 -->
+<div class="auth-overlay" id="modal-login">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeLoginModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">LOGIN</h3>
+        <div class="auth-field">
+            <label>Username</label>
+            <input id="login-username" type="text" placeholder="Enter your username" />
+        </div>
+        <div class="auth-field">
+            <label>Password</label>
+            <input id="login-password" type="password" placeholder="Enter your password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" onclick="doLogin()">LOGIN</button>
+        <p class="auth-switch">Not registered? <a href="#" onclick="openRegisterModal()">Create an account</a></p>
+    </div>
+</div>
+
+<!-- 注册弹窗 -->
+<div class="auth-overlay" id="modal-register">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeRegisterModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">CREATE ACCOUNT</h3>
+        <div class="auth-field">
+            <label>Name</label>
+            <input id="reg-name" type="text" placeholder="Your name" />
+        </div>
+        <div class="auth-field">
+            <label>Email</label>
+            <input id="reg-email" type="email" placeholder="Your email" />
+        </div>
+        <div class="auth-field">
+            <label>Password</label>
+            <input id="reg-password" type="password" placeholder="Create a password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" onclick="doRegister()">CREATE ACCOUNT</button>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="openLoginModal()">Log in</a></p>
+    </div>
+</div>
+
+<!-- 个人资料弹窗 -->
+<div class="auth-overlay" id="modal-profile">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeProfileModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">PROFILE</h3>
+        <div class="auth-avatar">
+            <i class="fa-regular fa-circle-user" style="font-size: 52px;"></i>
+            <span class="auth-avatar-name" id="profile-name-display">—</span>
+        </div>
+        <div class="auth-field">
+            <label>Name</label>
+            <input id="profile-name-input" type="text" placeholder="name" />
+        </div>
+        <div class="auth-field">
+            <label>Email</label>
+            <input id="profile-email-input" type="email" placeholder="email" />
+        </div>
+        <button class="auth-btn auth-btn-logout" onclick="doLogout()">LOG OUT</button>
+    </div>
+</div>
+
+<script src="./js/planner-data.js"></script>
+<script src="./js/auth-ui.js"></script>
+<script src="./js/ui.js"></script>
+</body>
+</html>

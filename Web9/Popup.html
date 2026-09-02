@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Popup Modals</title>
+</head>
+<body>
+
+<!--
+     弹窗模块（所有弹窗的 HTML 结构）
+     注意：此文件为早期独立弹窗版本，供参考。
+     实际各页面已将弹窗直接内嵌并使用 popup.css 样式。
+-->
+
+<!-- 创建模块弹窗 -->
+<div class="modal-backdrop" id="modal-create">
+    <div class="modal">
+        <div class="modal-header">
+            <button class="modal-close" onclick="closeCreateModal()">✕</button>
+            <span class="modal-title">New</span>
+            <button class="modal-confirm" onclick="closeCreateModal()">✓</button>
+        </div>
+        <button class="type-btn" onclick="selectCreateType('event')">event</button>
+        <button class="type-btn" onclick="selectCreateType('todo')">to-do List</button>
+        <button class="type-btn" onclick="selectCreateType('habit')">Habit Tracker</button>
+    </div>
+</div>
+
+<!-- 登录弹窗 -->
+<div class="modal-backdrop" id="modal-login">
+    <div class="modal">
+        <div class="modal-field"><input id="login-username" placeholder="username"/></div>
+        <div class="modal-field"><input id="login-password" type="password" placeholder="password"/></div>
+        <button class="modal-btn" onclick="doLogin()">LOGIN</button>
+        <p class="register-link">Not registered? <a href="#" onclick="openRegisterModal()">Create an account</a></p>
+    </div>
+</div>
+
+<!-- 注册弹窗 -->
+<div class="modal-backdrop" id="modal-register">
+    <div class="modal">
+        <div class="modal-field"><input id="reg-name" placeholder="name"/></div>
+        <div class="modal-field"><input id="reg-email" placeholder="Email"/></div>
+        <div class="modal-field"><input id="reg-password" type="password" placeholder="password"/></div>
+        <button class="modal-btn" onclick="doRegister()">create account</button>
+    </div>
+</div>
+
+<!-- 个人资料弹窗 -->
+<div class="modal-backdrop" id="modal-profile">
+    <div class="modal">
+        <div class="modal-header">
+            <button class="modal-close" onclick="closeProfileModal()">✕</button>
+            <span class="modal-title">PROFILE</span>
+            <div style="width:32px"></div>
+        </div>
+        <div class="profile-avatar">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="8" r="5"/>
+                <path d="M3 21c0-5 4-8 9-8s9 3 9 8"/>
+            </svg>
+            <span id="profile-name-display">name</span>
+        </div>
+        <div class="modal-field"><label>name</label><input id="profile-name-input" placeholder="name"/></div>
+        <div class="modal-field"><label>Email</label><input id="profile-email-input" placeholder="email"/></div>
+        <button class="modal-btn" style="background:#7a8a70" onclick="doLogout()">LOG OUT</button>
+    </div>
+</div>
+
+<script src="./js/planner-data.js"></script>
+<script src="./js/auth-ui.js"></script>
+
+</body>
+</html>

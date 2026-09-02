@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planner Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <link rel="stylesheet" href="./shared.css" />
+    <link rel="stylesheet" href="./Dashboard.css" />
+    <link rel="stylesheet" href="./popup.css" />
+</head>
+<body>
+<aside class="sidebar">
+    <button class="sidebar-btn" onclick="openCreateModal()">
+        <div class="create-icon"><i class="fa-solid fa-plus"></i></div>
+        <span>create</span>
+    </button>
+    <nav class="sidebar-nav">
+        <a href="Dashboard.html" class="nav-item" data-page="dashboard">
+            <div class="nav-icon"><i class="fa-solid fa-house"></i></div><span>Home</span>
+        </a>
+        <a href="Calendar.html" class="nav-item" data-page="calendar">
+            <div class="nav-icon"><i class="fa-regular fa-calendar"></i></div><span>Calendar</span>
+        </a>
+        <a href="Daily_Planner.html" class="nav-item" data-page="planner">
+            <div class="nav-icon"><i class="fa-solid fa-pen-to-square"></i></div><span>Daily<br>Planner</span>
+        </a>
+        <a href="todo_list.html" class="nav-item" data-page="todo">
+            <div class="nav-icon"><i class="fa-solid fa-list-ol"></i></div><span>To-do</span>
+        </a>
+        <a href="habit_tracker.html" class="nav-item" data-page="habit">
+            <div class="nav-icon"><i class="fa-regular fa-circle-check"></i></div><span>Habit<br>Tracker</span>
+        </a>
+    </nav>
+    <button class="nav-item profile-btn" onclick="toggleProfile()" aria-label="Profile">
+        <div class="nav-icon"><i class="fa-regular fa-circle-user"></i></div>
+    </button>
+</aside>
+
+<main class="main-content dashboard-main">
+    <header class="dashboard-hero">
+        <div>
+            <p class="dashboard-date" id="dashboard-date"></p>
+            <h1 id="dashboard-greeting">Good day</h1>
+            <p class="dashboard-subtitle">A clear view of what matters today.</p>
+        </div>
+        <a class="quick-add-primary" href="todo_list.html?action=new_todo">
+            <i class="fa-solid fa-plus"></i> Add task
+        </a>
+    </header>
+
+    <section class="stat-grid" aria-label="Today overview">
+        <article class="stat-card stat-todo">
+            <div class="stat-icon"><i class="fa-solid fa-list-check"></i></div>
+            <div><strong id="stat-open-todos">0</strong><span>Open tasks</span></div>
+        </article>
+        <article class="stat-card stat-event">
+            <div class="stat-icon"><i class="fa-regular fa-clock"></i></div>
+            <div><strong id="stat-events">0</strong><span>Events today</span></div>
+        </article>
+        <article class="stat-card stat-habit">
+            <div class="stat-icon"><i class="fa-solid fa-fire"></i></div>
+            <div><strong id="stat-habits">0%</strong><span>Habits today</span></div>
+        </article>
+        <article class="stat-card stat-week">
+            <div class="stat-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <div><strong id="stat-week">0%</strong><span>Weekly rhythm</span></div>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="dashboard-panel">
+            <div class="panel-heading">
+                <div><p class="eyebrow">Schedule</p><h2>Today</h2></div>
+                <a href="Daily_Planner.html">View planner <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div id="today-events" class="dashboard-list"></div>
+        </article>
+
+        <article class="dashboard-panel">
+            <div class="panel-heading">
+                <div><p class="eyebrow">Priorities</p><h2>Next tasks</h2></div>
+                <a href="todo_list.html">View all <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div id="next-todos" class="dashboard-list"></div>
+        </article>
+
+        <article class="dashboard-panel habits-panel">
+            <div class="panel-heading">
+                <div><p class="eyebrow">Consistency</p><h2>Habit check-in</h2></div>
+                <a href="habit_tracker.html">Open tracker <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div id="habit-summary" class="habit-summary"></div>
+        </article>
+
+        <article class="dashboard-panel quick-panel">
+            <div class="panel-heading"><div><p class="eyebrow">Shortcuts</p><h2>Quick add</h2></div></div>
+            <div class="quick-grid">
+                <a href="Daily_Planner.html?action=new_event"><i class="fa-regular fa-calendar-plus"></i><span>New event</span></a>
+                <a href="todo_list.html?action=new_todo"><i class="fa-solid fa-list-check"></i><span>New task</span></a>
+                <a href="habit_tracker.html?action=new_habit"><i class="fa-regular fa-circle-check"></i><span>New habit</span></a>
+                <a href="Calendar.html"><i class="fa-regular fa-calendar"></i><span>Calendar</span></a>
+            </div>
+        </article>
+    </section>
+</main>
+
+<div id="createModal" class="modal-overlay">
+    <div class="modal-card">
+        <button class="modal-close-btn" onclick="closeCreateModal()"><i class="fa-solid fa-xmark"></i></button>
+        <h3>New</h3>
+        <div class="create-options">
+            <div class="option-card" onclick="selectOption(this, 'event')"><span>Event</span></div>
+            <div class="option-card" onclick="selectOption(this, 'todo')"><span>To-do List</span></div>
+            <div class="option-card" onclick="selectOption(this, 'habit')"><span>Habit Tracker</span></div>
+        </div>
+        <div class="modal-actions"><button class="confirm-btn" onclick="confirmCreation()"><i class="fa-solid fa-check"></i></button></div>
+    </div>
+</div>
+
+<div class="auth-overlay" id="modal-login">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeLoginModal()"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="auth-title">LOGIN</h3>
+        <div class="auth-field"><label>Username</label><input id="login-username" type="text" placeholder="Enter username" /></div>
+        <div class="auth-field"><label>Password</label><input id="login-password" type="password" placeholder="Enter password" /></div>
+        <button class="auth-btn auth-btn-primary" onclick="doLogin()">LOGIN</button>
+        <p class="auth-switch">Not registered? <a href="#" onclick="openRegisterModal()">Create an account</a></p>
+    </div>
+</div>
+<div class="auth-overlay" id="modal-register">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeRegisterModal()"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="auth-title">CREATE ACCOUNT</h3>
+        <div class="auth-field"><label>Name</label><input id="reg-name" type="text" placeholder="Your name" /></div>
+        <div class="auth-field"><label>Email</label><input id="reg-email" type="email" placeholder="Your email" /></div>
+        <div class="auth-field"><label>Password</label><input id="reg-password" type="password" placeholder="At least 8 characters" /></div>
+        <button class="auth-btn auth-btn-primary" onclick="doRegister()">CREATE ACCOUNT</button>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="openLoginModal()">Log in</a></p>
+    </div>
+</div>
+<div class="auth-overlay" id="modal-profile">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="auth-title">PROFILE</h3>
+        <div class="auth-avatar"><i class="fa-regular fa-circle-user" style="font-size:52px"></i><span class="auth-avatar-name" id="profile-name-display">—</span></div>
+        <div class="auth-field"><label>Name</label><input id="profile-name-input" type="text" readonly /></div>
+        <div class="auth-field"><label>Email</label><input id="profile-email-input" type="email" readonly /></div>
+        <button class="auth-btn auth-btn-logout" onclick="doLogout()">LOG OUT</button>
+    </div>
+</div>
+
+<script>
+    let selectedType = null;
+
+    function openCreateModal() { selectedType = null; document.getElementById('createModal').classList.add('active'); }
+    function closeCreateModal() { document.getElementById('createModal').classList.remove('active'); }
+    function selectOption(element, type) {
+        document.querySelectorAll('.option-card').forEach(option => option.classList.remove('selected'));
+        element.classList.add('selected'); selectedType = type;
+    }
+    function confirmCreation() {
+        if (!selectedType) return alert('Please select an item type first');
+        const pages = { event: 'Daily_Planner.html?action=new_event', todo: 'todo_list.html?action=new_todo', habit: 'habit_tracker.html?action=new_habit' };
+        location.href = pages[selectedType];
+    }
+
+    function isoDate(date) {
+        return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    }
+    function mondayOf(date) {
+        const result = new Date(date); const day = result.getDay();
+        result.setDate(result.getDate() + (day === 0 ? -6 : 1 - day));
+        result.setHours(0,0,0,0); return result;
+    }
+    function timeValue(value) { return Number((value || '23:59').replace(':','').slice(0,4)); }
+
+    async function initDashboard() {
+        const now = new Date();
+        const todayIso = isoDate(now);
+        const weekStart = mondayOf(now);
+        try {
+            await Promise.all([
+                PlannerData.loadTodos(),
+                PlannerData.loadEvents(todayIso, todayIso),
+                PlannerData.loadHabits(isoDate(weekStart), todayIso)
+            ]);
+        } catch (error) { console.error(error); }
+
+        const user = PlannerData.getUser();
+        const hour = now.getHours();
+        const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+        document.getElementById('dashboard-greeting').textContent = `${greeting}${user ? `, ${user.username || user.name}` : ''}`;
+        document.getElementById('dashboard-date').textContent = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+        const todos = PlannerData.getTodos();
+        const openTodos = todos.filter(todo => !todo.done).sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999'));
+        const events = PlannerData.getEvents().filter(event => PlannerData.toIsoDate(event.date) === todayIso).sort((a,b) => timeValue(a.startTime) - timeValue(b.startTime));
+        const habits = PlannerData.getHabits();
+        const todayString = now.toDateString();
+        const todayDone = habits.filter(habit => habit.completedDates?.includes(todayString)).length;
+        const totalPossible = Math.max(habits.length * (Math.floor((now - weekStart) / 86400000) + 1), 1);
+        const weekDone = habits.reduce((sum, habit) => sum + (habit.completedDates || []).filter(value => {
+            const date = new Date(value); return date >= weekStart && date <= now;
+        }).length, 0);
+
+        document.getElementById('stat-open-todos').textContent = openTodos.length;
+        document.getElementById('stat-events').textContent = events.length;
+        document.getElementById('stat-habits').textContent = habits.length ? `${Math.round(todayDone / habits.length * 100)}%` : '0%';
+        document.getElementById('stat-week').textContent = `${Math.min(100, Math.round(weekDone / totalPossible * 100))}%`;
+        renderEvents(events);
+        renderTodos(openTodos.slice(0,5));
+        renderHabits(habits, todayString);
+    }
+
+    function emptyMarkup(icon, message) { return `<div class="empty-state-card"><i class="${icon}"></i><span>${message}</span></div>`; }
+    function renderEvents(events) {
+        const container = document.getElementById('today-events'); container.innerHTML = '';
+        if (!events.length) { container.innerHTML = emptyMarkup('fa-regular fa-calendar-check', 'No events scheduled today'); return; }
+        events.forEach(event => {
+            const row = document.createElement('a'); row.href = 'Daily_Planner.html'; row.className = 'dashboard-list-item';
+            const dot = document.createElement('span'); dot.className = 'list-color'; dot.style.background = event.color;
+            const copy = document.createElement('div'); const title = document.createElement('strong'); title.textContent = event.title;
+            const meta = document.createElement('span'); meta.textContent = `${event.startTime || 'All day'}${event.endTime ? ` – ${event.endTime}` : ''}`;
+            copy.append(title, meta); row.append(dot, copy); container.appendChild(row);
+        });
+    }
+    function renderTodos(todos) {
+        const container = document.getElementById('next-todos'); container.innerHTML = '';
+        if (!todos.length) { container.innerHTML = emptyMarkup('fa-solid fa-check', 'Everything is complete'); return; }
+        todos.forEach(todo => {
+            const row = document.createElement('a'); row.href = 'todo_list.html'; row.className = 'dashboard-list-item';
+            const dot = document.createElement('span'); dot.className = 'list-color'; dot.style.background = todo.color;
+            const copy = document.createElement('div'); const title = document.createElement('strong'); title.textContent = todo.title;
+            const meta = document.createElement('span'); meta.textContent = todo.date ? new Date(`${todo.date}T00:00:00`).toLocaleDateString('en-US', {month:'short',day:'numeric'}) : 'No due date';
+            copy.append(title, meta); row.append(dot, copy); container.appendChild(row);
+        });
+    }
+    function renderHabits(habits, todayString) {
+        const container = document.getElementById('habit-summary'); container.innerHTML = '';
+        if (!habits.length) { container.innerHTML = emptyMarkup('fa-regular fa-circle-check', 'Create your first habit'); return; }
+        habits.forEach(habit => {
+            const done = habit.completedDates?.includes(todayString);
+            const row = document.createElement('a'); row.href = 'habit_tracker.html'; row.className = 'habit-summary-row';
+            const marker = document.createElement('span'); marker.className = `habit-marker${done ? ' done' : ''}`; marker.style.setProperty('--habit-color', habit.color);
+            marker.innerHTML = done ? '<i class="fa-solid fa-check"></i>' : '';
+            const name = document.createElement('strong'); name.textContent = habit.title;
+            const state = document.createElement('span'); state.textContent = done ? 'Completed' : 'Not yet';
+            row.append(marker, name, state); container.appendChild(row);
+        });
+    }
+    window.addEventListener('load', initDashboard);
+</script>
+<script src="./js/planner-data.js"></script>
+<script src="./js/auth-ui.js"></script>
+<script src="./js/ui.js"></script>
+</body>
+</html>
+

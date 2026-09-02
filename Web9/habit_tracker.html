@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Habit Tracker</title>
+
+    <link rel="stylesheet" href="./habit_tracker.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="./shared.css"/>
+    <link rel="stylesheet" href="./popup.css"/>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+    <button class="sidebar-btn" onclick="openCreateModal()">
+        <div class="create-icon">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+        <span>create</span>
+    </button>
+
+    <nav class="sidebar-nav">
+        <a href="Dashboard.html" class="nav-item" data-page="dashboard">
+            <div class="nav-icon"><i class="fa-solid fa-house"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="Calendar.html" class="nav-item" data-page="calendar">
+            <div class="nav-icon">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+            <span>Calendar</span>
+        </a>
+
+        <a href="Daily_Planner.html" class="nav-item" data-page="planner">
+            <div class="nav-icon">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <span>Daily<br>Planner</span>
+        </a>
+
+        <a href="todo_list.html" class="nav-item" data-page="todo">
+            <div class="nav-icon">
+                <i class="fa-solid fa-list-ol"></i>
+            </div>
+            <span>To-do</span>
+        </a>
+
+        <a href="habit_tracker.html" class="nav-item" data-page="habit">
+            <div class="nav-icon">
+                <i class="fa-regular fa-circle-check"></i>
+            </div>
+            <span>Habit<br>Tracker</span>
+        </a>
+    </nav>
+
+    <button class="nav-item profile-btn" onclick="toggleProfile()">
+        <div class="nav-icon">
+            <i class="fa-regular fa-circle-user"></i>
+        </div>
+    </button>
+</aside>
+
+<main class="main-content">
+    <div class="habit_tracker">
+        <div class="habit-center-wrapper">
+
+            <div class="habit-header-top">
+                <h2 id="monthYearDisplay" class="month-year-display">Month Year</h2>
+                <button id="todayBtn" class="today-btn">Today</button>
+            </div>
+
+            <div class="habit-overview">
+                <div><span>Today</span><strong id="habit-today-progress">0 / 0</strong></div>
+                <div><span>This week</span><strong id="habit-week-progress">0%</strong></div>
+            </div>
+
+            <div class="header">
+                <div id="prevWeekBtn" class="btn"><i class="fa-solid fa-caret-left"></i></div>
+                <div class="calender">
+                    <div class="weekdays">
+                        <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+                    </div>
+                    <div class="days" id="calendarDays">
+                    </div>
+                </div>
+                <div id="nextWeekBtn" class="btn"><i class="fa-solid fa-caret-right"></i></div>
+            </div>
+
+            <div class="habit_checklist">
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<div class="modals" id="modals"></div>
+
+<div id="createModal" class="modal-overlay">
+    <div class="modal-card">
+        <button class="modal-close-btn" onclick="closeCreateModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h3>New</h3>
+
+        <div class="create-options">
+            <div class="option-card" onclick="selectOption(this, 'event')">
+                <span>Event</span>
+            </div>
+
+            <div class="option-card" onclick="selectOption(this, 'todo')">
+                <span>To-do List</span>
+            </div>
+
+            <div class="option-card" onclick="selectOption(this, 'habit')">
+                <span>Habit Tracker</span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="confirm-btn" onclick="confirmCreation()">
+                <i class="fa-solid fa-check"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="createHabitModal" class="modal-overlay">
+    <div class="modal-card todo-modal-card">
+
+        <div class="todo-modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="habitModalTitle" class="todo-modal-title" style="margin: 0;">Create Habit Tracker</h3>
+            <i class="fa-solid fa-xmark todo-icon-btn" onclick="closeHabitModal()" style="cursor: pointer;"></i>
+        </div>
+
+        <div class="create-options todo-options">
+            <div class="input-group todo-input-group">
+                <label class="todo-label">Title</label>
+                <input type="text" id="habitTitleInput" class="todo-text-input" oninput="checkHabitTitleInput()" placeholder="Study, Yoga, Swim...">
+            </div>
+
+            <!-- Color 面板（与 Daily_Planner 完全一致） -->
+            <div class="input-group todo-input-group cp-trigger" onclick="habitTogglePicker()">
+                <label class="todo-label">Color</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span id="habitColorHexText" class="cp-display">#B5C4A0</span>
+                    <div id="habit-color-swatch-dot" style="width:22px;height:22px;border-radius:50%;background:#B5C4A0;border:2px solid var(--border);flex-shrink:0;"></div>
+                </div>
+            </div>
+            <div class="cp-panel" id="habit-color-picker">
+                <div class="cp-color-preview">
+                    <div id="habit-color-preview-box"></div>
+                    <span id="habit-color-preview-hex"></span>
+                </div>
+                <div class="cp-color-presets" id="habit-swatches"></div>
+                <div class="cp-color-free">
+                    <label class="cp-color-free-label">Custom</label>
+                    <input type="color" id="habitColorInput" class="cp-color-native" value="#B5C4A0">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions todo-actions habit-modal-actions">
+            <button id="habitDeleteBtn" class="habit-action-btn delete-btn" onclick="deleteHabitItem()">Delete</button>
+            <button id="habitSaveBtn" class="habit-action-btn save-btn" onclick="saveHabitItem()" disabled>Save</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    let selectedType = null;
+    let currentEditingHabitId = null;
+
+    // ==========================================
+    // 1. ระบบปฏิทินและการเลื่อนสัปดาห์
+    // ==========================================
+    let currentDate = new Date();
+    let displayedWeekStart = getStartOfWeek(new Date());
+    let weekDatesStr = [];
+
+    function getStartOfWeek(date) {
+        let d = new Date(date);
+        let day = d.getDay();
+        let diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
+    }
+
+    function renderCalendar() {
+        const daysContainer = document.getElementById('calendarDays');
+        if (!daysContainer) return;
+        daysContainer.innerHTML = '';
+        weekDatesStr = [];
+
+        let midWeek = new Date(displayedWeekStart);
+        midWeek.setDate(midWeek.getDate() + 3);
+        let monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        let monthYearStr = monthNames[midWeek.getMonth()] + " " + midWeek.getFullYear();
+
+        let monthDisplayEl = document.getElementById('monthYearDisplay');
+        if (monthDisplayEl) monthDisplayEl.innerText = monthYearStr;
+
+        let todayStr = new Date().toDateString();
+
+        for (let i = 0; i < 7; i++) {
+            let d = new Date(displayedWeekStart);
+            d.setDate(d.getDate() + i);
+            let dateString = d.toDateString();
+            weekDatesStr.push(dateString);
+
+            let dayDiv = document.createElement('div');
+            dayDiv.innerText = d.getDate();
+
+            if (dateString === todayStr) {
+                dayDiv.classList.add('current-day');
+            }
+            daysContainer.appendChild(dayDiv);
+        }
+    }
+
+    // ==========================================
+    // 2. โหลดหน้าเว็บและ Event Listeners
+    // ==========================================
+    async function refreshHabits() {
+        if (weekDatesStr.length === 0) return;
+        const historyStart = new Date(weekDatesStr[0]);
+        historyStart.setDate(historyStart.getDate() - 365);
+        try {
+            await PlannerData.loadHabits(
+                PlannerData.toIsoDate(historyStart.toDateString()),
+                PlannerData.toIsoDate(weekDatesStr[6])
+            );
+        } catch (error) {
+            console.error(error);
+        }
+        renderHabits();
+    }
+
+    window.addEventListener('load', async function() {
+        renderCalendar();
+        await refreshHabits();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'new_habit') {
+            openHabitModalForCreate();
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        document.getElementById('prevWeekBtn').addEventListener('click', async () => {
+            displayedWeekStart.setDate(displayedWeekStart.getDate() - 7);
+            renderCalendar();
+            await refreshHabits();
+        });
+
+        document.getElementById('nextWeekBtn').addEventListener('click', async () => {
+            displayedWeekStart.setDate(displayedWeekStart.getDate() + 7);
+            renderCalendar();
+            await refreshHabits();
+        });
+
+        document.getElementById('todayBtn').addEventListener('click', async () => {
+            displayedWeekStart = getStartOfWeek(new Date());
+            renderCalendar();
+            await refreshHabits();
+        });
+    });
+
+    // ==========================================
+    // 3. ฟังก์ชันวาด Habit ลงหน้าจอ
+    // ==========================================
+    function renderHabits() {
+        const container = document.querySelector('.habit_checklist');
+        if (!container) return;
+
+        const habits = PlannerData.getHabits();
+
+        container.innerHTML = '';
+
+        const todayString = new Date().toDateString();
+        const todayDone = habits.filter(habit => habit.completedDates?.includes(todayString)).length;
+        const weekDone = habits.reduce((total, habit) => total + weekDatesStr.filter(date => habit.completedDates?.includes(date)).length, 0);
+        document.getElementById('habit-today-progress').textContent = `${todayDone} / ${habits.length}`;
+        document.getElementById('habit-week-progress').textContent = habits.length ? `${Math.round(weekDone / (habits.length * 7) * 100)}%` : '0%';
+
+        if (habits.length === 0) {
+            container.innerHTML = '<div class="empty-state-card"><i class="fa-regular fa-circle-check"></i><span>Create your first habit</span></div>';
+            return;
+        }
+
+        habits.forEach(habit => {
+            const row = document.createElement('div');
+            row.className = 'habit_row';
+            row.style.setProperty('--habit-color', habit.color);
+            const name = document.createElement('button');
+            name.type = 'button';
+            name.className = 'habit_name';
+            const title = document.createElement('span');
+            title.className = 'habit-title-text';
+            title.textContent = habit.title;
+            const completedThisWeek = weekDatesStr.filter(date => habit.completedDates?.includes(date)).length;
+            const meta = document.createElement('span');
+            meta.className = 'habit-meta';
+            meta.textContent = `${calculateStreak(habit.completedDates || [])} day streak · ${completedThisWeek}/7`;
+            name.append(title, meta);
+            name.addEventListener('click', () => openHabitModalForEdit(habit.id));
+            row.appendChild(name);
+
+            weekDatesStr.forEach(dateStr => {
+                const label = document.createElement('label');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = Boolean(habit.completedDates?.includes(dateStr));
+                checkbox.setAttribute('aria-label', `${habit.title} ${dateStr}`);
+                checkbox.addEventListener('change', () => toggleHabitDay(habit.id, dateStr, checkbox));
+                label.append(checkbox, document.createElement('span'));
+                row.appendChild(label);
+            });
+            container.appendChild(row);
+        });
+    }
+
+    function calculateStreak(completedDates) {
+        const completed = new Set(completedDates);
+        let cursor = new Date();
+        cursor.setHours(0,0,0,0);
+        if (!completed.has(cursor.toDateString())) cursor.setDate(cursor.getDate() - 1);
+        let streak = 0;
+        while (completed.has(cursor.toDateString()) && streak < 366) {
+            streak += 1;
+            cursor.setDate(cursor.getDate() - 1);
+        }
+        return streak;
+    }
+
+    async function toggleHabitDay(habitId, dateStr, checkbox) {
+        if (checkbox.dataset.busy === 'true') return;
+        checkbox.dataset.busy = 'true';
+        checkbox.disabled = true;
+        const intendedValue = checkbox.checked;
+        try {
+            await PlannerData.toggleHabitDate(habitId, dateStr, intendedValue);
+            renderHabits();
+            window.PlannerUI?.toast(intendedValue ? 'Habit completed' : 'Habit unchecked', intendedValue ? 'success' : 'info');
+        } catch (error) {
+            checkbox.checked = !intendedValue;
+            alert(error.message);
+        } finally {
+            checkbox.disabled = false;
+            checkbox.dataset.busy = 'false';
+        }
+    }
+
+    // ==========================================
+    // 4. จัดการหน้าต่างหลัก (เลือกประเภท)
+    // ==========================================
+    function openCreateModal() {
+        resetSelection();
+        document.getElementById('createModal').classList.add('active');
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.remove('active');
+    }
+
+    function selectOption(element, type) {
+        const options = document.querySelectorAll('.option-card');
+        options.forEach(opt => opt.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedType = type;
+    }
+
+    function resetSelection() {
+        selectedType = null;
+        document.querySelectorAll('.option-card').forEach(opt => opt.classList.remove('selected'));
+    }
+
+    function confirmCreation() {
+        if (!selectedType) { alert('Please select an item type first!'); return; }
+        closeCreateModal();
+
+        if (selectedType === 'todo') {
+            window.location.href = 'todo_list.html?action=new_todo';
+        } else if (selectedType === 'event') {
+            window.location.href = 'Daily_Planner.html?action=new_event';
+        } else if (selectedType === 'habit') {
+            // setTimeout 确保当前点击事件完全结束后再打开弹窗，
+            // 防止 window.onclick 误判 event.target 而立即关闭弹窗
+            setTimeout(openHabitModalForCreate, 0);
+        }
+    }
+
+    // ==========================================
+    // 5. จัดการ Habit Modal (สร้าง / แก้ไข)
+    // ==========================================
+
+    // ── Habit 颜色面板（与 Daily_Planner 完全一致） ──
+    const HABIT_PRESET_COLORS = [
+        '#F2D7D9','#E8BFC2','#E2D4E0','#D4DEF0',
+        '#D0E8D8','#B5C4A0','#F5E6C8','#E8D5B0',
+        '#D8C4B8','#C4D4D8','#E0D0E8','#F0E0C8'
+    ];
+
+    function habitTogglePicker() {
+        const panel = document.getElementById('habit-color-picker');
+        const isOpen = panel.classList.contains('cp-open');
+        panel.classList.toggle('cp-open');
+        if (!isOpen) {
+            renderHabitColorPicker(document.getElementById('habitColorInput').value || '#B5C4A0');
+        }
+    }
+
+    function habitClosePicker() {
+        document.getElementById('habit-color-picker').classList.remove('cp-open');
+    }
+
+    function renderHabitColorPicker(selectedColor) {
+        // 同步触发行预览
+        document.getElementById('habitColorInput').value = selectedColor;
+        document.getElementById('habitColorHexText').textContent = selectedColor.toUpperCase();
+        document.getElementById('habit-color-swatch-dot').style.background = selectedColor;
+        // 同步面板内预览
+        const previewBox = document.getElementById('habit-color-preview-box');
+        if (previewBox) {
+            previewBox.style.background = selectedColor;
+            document.getElementById('habit-color-preview-hex').textContent = selectedColor.toUpperCase();
+        }
+        // 渲染预设色点
+        const container = document.getElementById('habit-swatches');
+        if (!container) return;
+        container.innerHTML = '';
+        HABIT_PRESET_COLORS.forEach(col => {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'cp-swatch' + (col.toLowerCase() === selectedColor.toLowerCase() ? ' cp-swatch-selected' : '');
+            dot.style.background = col;
+            dot.title = col;
+            dot.addEventListener('click', () => renderHabitColorPicker(col));
+            container.appendChild(dot);
+        });
+        // 同步原生 color input
+        const native = document.getElementById('habitColorInput');
+        if (native) {
+            native.value = selectedColor;
+            native.oninput = function() { renderHabitColorPicker(this.value); };
+        }
+    }
+
+    function closeHabitModal() {
+        habitClosePicker();
+        document.getElementById('createHabitModal').classList.remove('active');
+    }
+
+    function checkHabitTitleInput() {
+        const titleInput = document.getElementById('habitTitleInput').value.trim();
+        const saveBtn = document.getElementById('habitSaveBtn');
+        saveBtn.disabled = (titleInput === '');
+    }
+
+    function openHabitModalForCreate() {
+        currentEditingHabitId = null;
+        document.getElementById('habitModalTitle').innerText = 'Create Habit Tracker';
+        document.getElementById('habitTitleInput').value = '';
+        habitClosePicker();
+        renderHabitColorPicker('#B5C4A0');
+
+        document.getElementById('habitDeleteBtn').style.display = 'none';
+        document.getElementById('habitSaveBtn').style.display = 'block';
+
+        checkHabitTitleInput();
+        document.getElementById('createHabitModal').classList.add('active');
+    }
+
+    function openHabitModalForEdit(id) {
+        currentEditingHabitId = id;
+        const habit = PlannerData.getHabits().find(item => String(item.id) === String(id));
+        if (!habit) return;
+
+        document.getElementById('habitModalTitle').innerText = 'Edit Habit Tracker';
+        document.getElementById('habitTitleInput').value = habit.title;
+        habitClosePicker();
+        renderHabitColorPicker(habit.color || '#B5C4A0');
+
+        document.getElementById('habitDeleteBtn').style.display = 'block';
+        document.getElementById('habitSaveBtn').style.display = 'block';
+
+        checkHabitTitleInput();
+        document.getElementById('createHabitModal').classList.add('active');
+    }
+
+    async function saveHabitItem() {
+        const titleInput = document.getElementById('habitTitleInput').value.trim();
+        const colorInput = document.getElementById('habitColorInput').value;
+
+        if (titleInput === '') return;
+
+        const saveButton = document.getElementById('habitSaveBtn');
+        if (saveButton.disabled || saveButton.dataset.busy === 'true') return;
+        saveButton.dataset.busy = 'true';
+        saveButton.disabled = true;
+        try {
+            const existing = PlannerData.getHabits().find(item => String(item.id) === String(currentEditingHabitId));
+            await PlannerData.saveHabit({
+                ...(existing || {}),
+                id: existing?.id,
+                title: titleInput,
+                color: colorInput,
+                completedDates: existing?.completedDates || []
+            });
+            closeHabitModal();
+            renderHabits();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            saveButton.dataset.busy = 'false';
+            checkHabitTitleInput();
+        }
+    }
+
+    async function deleteHabitItem() {
+        if (currentEditingHabitId === null) return closeHabitModal();
+        const button = document.getElementById('habitDeleteBtn');
+        if (button.dataset.busy === 'true') return;
+        button.dataset.busy = 'true';
+        try {
+            await PlannerData.deleteHabit(currentEditingHabitId);
+            closeHabitModal();
+            renderHabits();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            button.dataset.busy = 'false';
+        }
+    }
+
+    // ==========================================
+    // 6. การคลิกพื้นที่ว่างเพื่อปิดหน้าต่าง Modal
+    // ==========================================
+    window.onclick = function(event) {
+        const modal1 = document.getElementById('createModal');
+        const modal2 = document.getElementById('createHabitModal');
+        if (event.target === modal1) closeCreateModal();
+        if (event.target === modal2) closeHabitModal();
+    }
+</script>
+
+<!-- ==========================================
+     登录 / 注册 / 个人资料 弹窗
+     ========================================== -->
+
+<!-- 登录弹窗 -->
+<div class="auth-overlay" id="modal-login">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeLoginModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">LOGIN</h3>
+        <div class="auth-field">
+            <label>Username</label>
+            <input id="login-username" type="text" placeholder="Enter your username" />
+        </div>
+        <div class="auth-field">
+            <label>Password</label>
+            <input id="login-password" type="password" placeholder="Enter your password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" onclick="doLogin()">LOGIN</button>
+        <p class="auth-switch">Not registered? <a href="#" onclick="openRegisterModal()">Create an account</a></p>
+    </div>
+</div>
+
+<!-- 注册弹窗 -->
+<div class="auth-overlay" id="modal-register">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeRegisterModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">CREATE ACCOUNT</h3>
+        <div class="auth-field">
+            <label>Name</label>
+            <input id="reg-name" type="text" placeholder="Your name" />
+        </div>
+        <div class="auth-field">
+            <label>Email</label>
+            <input id="reg-email" type="email" placeholder="Your email" />
+        </div>
+        <div class="auth-field">
+            <label>Password</label>
+            <input id="reg-password" type="password" placeholder="Create a password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" onclick="doRegister()">CREATE ACCOUNT</button>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="openLoginModal()">Log in</a></p>
+    </div>
+</div>
+
+<!-- 个人资料弹窗 -->
+<div class="auth-overlay" id="modal-profile">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeProfileModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">PROFILE</h3>
+        <div class="auth-avatar">
+            <i class="fa-regular fa-circle-user" style="font-size: 52px;"></i>
+            <span class="auth-avatar-name" id="profile-name-display">—</span>
+        </div>
+        <div class="auth-field">
+            <label>Name</label>
+            <input id="profile-name-input" type="text" placeholder="name" />
+        </div>
+        <div class="auth-field">
+            <label>Email</label>
+            <input id="profile-email-input" type="email" placeholder="email" />
+        </div>
+        <button class="auth-btn auth-btn-logout" onclick="doLogout()">LOG OUT</button>
+    </div>
+</div>
+
+<script src="./js/planner-data.js"></script>
+<script src="./js/auth-ui.js"></script>
+<script src="./js/ui.js"></script>
+</body>
+</html>

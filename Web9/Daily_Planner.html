@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Daily Planner</title>
+
+    <!-- 1. 补全 FontAwesome 字体图标库，将箭头替换为高级图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="./shared.css"/>
+    <link rel="stylesheet" href="./Daily_Planner.css"/>
+    <link rel="stylesheet" href="./popup.css"/>
+</head>
+
+<body>
+<aside class="sidebar" id="sidebar">
+    <button class="sidebar-btn" onclick="openCreateModal()">
+        <div class="create-icon">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+        <span>create</span>
+    </button>
+
+    <nav class="sidebar-nav">
+        <a href="Dashboard.html" class="nav-item" data-page="dashboard">
+            <div class="nav-icon"><i class="fa-solid fa-house"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="Calendar.html" class="nav-item" data-page="calendar">
+            <div class="nav-icon">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+            <span>Calendar</span>
+        </a>
+
+        <a href="Daily_Planner.html" class="nav-item" data-page="planner">
+            <div class="nav-icon">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <span>Daily<br>Planner</span>
+        </a>
+
+        <a href="todo_list.html" class="nav-item" data-page="todo">
+            <div class="nav-icon">
+                <i class="fa-solid fa-list-ol"></i>
+            </div>
+            <span>To-do</span>
+        </a>
+
+        <a href="habit_tracker.html" class="nav-item" data-page="habit">
+            <div class="nav-icon">
+                <i class="fa-regular fa-circle-check"></i>
+            </div>
+            <span>Habit<br>Tracker</span>
+        </a>
+    </nav>
+
+    <button class="nav-item profile-btn" onclick="toggleProfile()">
+        <div class="nav-icon">
+            <i class="fa-regular fa-circle-user"></i>
+        </div>
+    </button>
+</aside>
+
+<main class="main-content">
+    <div class="planner-week-header">
+        <!-- 将字符箭头 ◀ 替换为你朋友同款的 FontAwesome 箭头图标 -->
+        <button class="nav-arrow" id="prev-week"><i class="fa-solid fa-caret-left"></i></button>
+        <div class="week-days" id="week-days"></div>
+        <button class="nav-arrow" id="next-week"><i class="fa-solid fa-caret-right"></i></button>
+    </div>
+
+    <div class="planner-body">
+        <div class="time-col" id="time-col"></div>
+        <div class="days-grid" id="days-grid"></div>
+    </div>
+</main>
+
+<div class="modals" id="modals"></div>
+
+<!-- 1. 全局加号新建弹窗 -->
+<div id="createModal" class="modal-overlay">
+    <div class="modal-card">
+        <button class="modal-close-btn" onclick="closeCreateModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3>New</h3>
+        <div class="create-options">
+            <div class="option-card" onclick="selectOption(this, 'event')"><span>Event</span></div>
+            <div class="option-card" onclick="selectOption(this, 'todo')"><span>To-do List</span></div>
+            <div class="option-card" onclick="selectOption(this, 'habit')"><span>Habit Tracker</span></div>
+        </div>
+        <div class="modal-actions">
+            <button class="confirm-btn" onclick="confirmCreation()"><i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- 2. 日程编辑/新建弹窗 -->
+<div id="eventModal" class="modal-overlay">
+    <div class="modal-card todo-modal-card">
+        <div class="todo-modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="event-modal-title" class="todo-modal-title" style="margin: 0;">Create Event</h3>
+            <i class="fa-solid fa-xmark todo-icon-btn" onclick="closeEventModal()" style="cursor: pointer;"></i>
+        </div>
+
+        <div class="create-options todo-options">
+            <input type="hidden" id="ev-id">
+
+            <!-- Title -->
+            <div class="input-group todo-input-group">
+                <label class="todo-label">Title</label>
+                <input type="text" id="ev-title" class="todo-text-input" placeholder="Meeting, Lunch, Gym...">
+            </div>
+
+            <!-- Details -->
+            <div class="input-group todo-input-group">
+                <label class="todo-label">Details</label>
+                <input type="text" id="ev-details" class="todo-text-input" placeholder="Add description...">
+            </div>
+
+            <!-- Date 自定义选择器 -->
+            <div class="input-group todo-input-group cp-trigger" id="ev-date-row" onclick="togglePicker('date-picker')">
+                <label class="todo-label">Date</label>
+                <span id="ev-date-display" class="cp-display">Select date</span>
+            </div>
+            <div class="cp-panel" id="date-picker">
+                <div class="cp-nav">
+                    <button onclick="cpShiftMonth(-1)">&#9664;</button>
+                    <span id="cp-month-label"></span>
+                    <button onclick="cpShiftMonth(1)">&#9654;</button>
+                </div>
+                <div class="cp-weekdays">
+                    <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                </div>
+                <div class="cp-days" id="cp-days"></div>
+            </div>
+
+            <!-- Time 自定义选择器（两列） -->
+            <div class="input-group todo-input-group cp-trigger" id="ev-time-row" onclick="togglePicker('time-picker')">
+                <label class="todo-label">Time</label>
+                <span id="ev-time-display" class="cp-display">06:00 – 07:00</span>
+            </div>
+            <div class="cp-panel" id="time-picker">
+                <div class="cp-exact-time-row">
+                    <label>Exact start<input id="exact-start-time" type="time" step="60" oninput="setExactTime('start', this.value)"></label>
+                    <label>Exact end<input id="exact-end-time" type="time" step="60" oninput="setExactTime('end', this.value)"></label>
+                </div>
+                <div class="cp-time-cols">
+                    <div class="cp-time-col">
+                        <div class="cp-time-header">Start</div>
+                        <div class="cp-scroll" id="start-hour-scroll"></div>
+                        <span class="cp-colon">:</span>
+                        <div class="cp-scroll" id="start-min-scroll"></div>
+                    </div>
+                    <div class="cp-time-sep"></div>
+                    <div class="cp-time-col">
+                        <div class="cp-time-header">End</div>
+                        <div class="cp-scroll" id="end-hour-scroll"></div>
+                        <span class="cp-colon">:</span>
+                        <div class="cp-scroll" id="end-min-scroll"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color 面板 -->
+            <div class="input-group todo-input-group cp-trigger" onclick="togglePicker('color-picker')">
+                <label class="todo-label">Color</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span id="ev-color-hex" class="cp-display">#F2D7D9</span>
+                    <div id="ev-color-swatch-dot" style="width:22px;height:22px;border-radius:50%;background:#F2D7D9;border:2px solid var(--border);flex-shrink:0;"></div>
+                </div>
+            </div>
+            <div class="cp-panel" id="color-picker">
+                <div class="cp-color-preview">
+                    <div id="ev-color-preview-box"></div>
+                    <span id="ev-color-preview-hex"></span>
+                </div>
+                <div class="cp-color-presets" id="ev-swatches"></div>
+                <div class="cp-color-free">
+                    <label class="cp-color-free-label">Custom</label>
+                    <input type="color" id="ev-color" class="cp-color-native" value="#F2D7D9">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-action-row">
+            <button id="ev-delete-btn" class="action-btn delete-btn" onclick="deleteEvent()">Delete</button>
+            <button id="ev-save-btn" class="action-btn save-btn" onclick="saveEvent()">Save</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // 核心 JS 逻辑同步与联动改造
+    const DAYS_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    // 完整的 24 小时时间轴：00:00–23:00
+    const HOURS = Array.from(
+        { length: 24 },
+        (_, hour) => `${String(hour).padStart(2, '0')}:00`
+    );
+    const START_HOUR = 0;
+
+    let weekStart;
+    let selectedType = null;
+    let currentTimeTimer = null;
+    let hasAutoScrolled = false;
+
+    async function init() {
+        const now = new Date();
+        const day = now.getDay();
+        const diff = (day === 0) ? -6 : 1 - day;
+        weekStart = new Date(now);
+        weekStart.setDate(now.getDate() + diff);
+        weekStart.setHours(0,0,0,0);
+
+        await refreshWeekData();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'new_event') {
+            openNewEvent(formatDate(new Date()));
+            // 清理 URL 参数防止刷新时重复弹出
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        document.getElementById('prev-week').addEventListener('click', () => { shiftWeek(-7); });
+        document.getElementById('next-week').addEventListener('click', () => { shiftWeek(7); });
+        currentTimeTimer = window.setInterval(() => renderCurrentTimeLine(getWeekDates(), false), 60000);
+    }
+
+    async function shiftWeek(days) {
+        weekStart.setDate(weekStart.getDate() + days);
+        await refreshWeekData();
+    }
+
+    async function refreshWeekData() {
+        const dates = getWeekDates();
+        try {
+            await PlannerData.loadEvents(
+                PlannerData.toIsoDate(formatDate(dates[0])),
+                PlannerData.toIsoDate(formatDate(dates[6]))
+            );
+        } catch (error) {
+            console.error(error);
+        }
+        renderWeek();
+    }
+
+    function getWeekDates() {
+        const dates = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(weekStart);
+            d.setDate(weekStart.getDate() + i);
+            dates.push(d);
+        }
+        return dates;
+    }
+
+    function renderWeek() {
+        const dates = getWeekDates();
+        const today = new Date(); today.setHours(0,0,0,0);
+
+        const wdContainer = document.getElementById('week-days');
+        wdContainer.innerHTML = '';
+        dates.forEach(d => {
+            const col = document.createElement('div');
+            col.className = 'week-day-col';
+            const isToday = d.getTime() === today.getTime();
+            // 统一高亮类名为你朋友的 'current-day'
+            col.innerHTML = `
+                <div class="week-day-name">${DAYS_SHORT[d.getDay() === 0 ? 6 : d.getDay()-1]}</div>
+                <div class="week-day-num${isToday ? ' current-day' : ''}">${d.getDate()}</div>
+            `;
+            wdContainer.appendChild(col);
+        });
+
+        const timeCol = document.getElementById('time-col');
+        timeCol.innerHTML = '';
+        HOURS.forEach(h => {
+            const lbl = document.createElement('div');
+            lbl.className = 'time-slot-label';
+            lbl.textContent = h;
+            timeCol.appendChild(lbl);
+        });
+
+        const grid = document.getElementById('days-grid');
+        grid.innerHTML = '';
+        const events = PlannerData.getEvents();
+
+        dates.forEach((d, di) => {
+            const col = document.createElement('div');
+            col.className = 'day-col';
+
+            HOURS.forEach(h => {
+                const row = document.createElement('div');
+                row.className = 'time-row';
+                col.appendChild(row);
+            });
+
+            const dateStr = formatDate(d);
+            const dayEvents = events.filter(e => e.date === dateStr);
+            dayEvents.forEach(ev => {
+                const block = document.createElement('div');
+                block.className = 'event-block';
+                block.style.background = ev.color || '#dce8f8';
+                block.style.color = contrastColor(ev.color || '#dce8f8');
+
+                const startMins = timeToMins(ev.startTime || '6:00');
+                const endMins = timeToMins(ev.endTime || '7:00');
+                const top = (startMins - START_HOUR * 60) * (60 / 60);
+                const height = Math.max((endMins - startMins) * (60 / 60), 30);
+
+                block.style.top = `${top}px`;
+                block.style.height = `${height}px`;
+
+                const title = document.createElement('span');
+                title.className = 'ev-title';
+                title.textContent = ev.title;
+                const details = document.createElement('span');
+                details.className = 'ev-details';
+                details.textContent = ev.details || '';
+                const time = document.createElement('span');
+                time.className = 'ev-time';
+                time.textContent = `${ev.startTime || ''}${ev.endTime ? `-${ev.endTime}` : ''}`;
+                block.append(title, details, time);
+                block.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 阻止冒泡，避免触发空白处的点击事件
+                    openEditEvent(ev);
+                });
+                col.appendChild(block);
+            });
+
+            col.addEventListener('click', (e) => {
+                if (e.target.classList.contains('event-block') || e.target.closest('.event-block')) return;
+                openNewEvent(dateStr);
+            });
+
+            grid.appendChild(col);
+        });
+
+        const foundToday = renderCurrentTimeLine(dates, !hasAutoScrolled);
+        if (foundToday) hasAutoScrolled = true;
+    }
+
+    function renderCurrentTimeLine(dates, scrollIntoView) {
+        document.querySelectorAll('.current-time-line').forEach(line => line.remove());
+        const now = new Date();
+        const todayIndex = dates.findIndex(date =>
+            date.getFullYear() === now.getFullYear()
+            && date.getMonth() === now.getMonth()
+            && date.getDate() === now.getDate()
+        );
+        if (todayIndex < 0) return false;
+
+        const columns = document.querySelectorAll('#days-grid .day-col');
+        const todayColumn = columns[todayIndex];
+        if (!todayColumn) return false;
+
+        const minutes = now.getHours() * 60 + now.getMinutes();
+        const line = document.createElement('div');
+        line.className = 'current-time-line';
+        line.style.top = `${minutes}px`;
+        const label = document.createElement('span');
+        label.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        line.appendChild(label);
+        todayColumn.appendChild(line);
+
+        if (scrollIntoView) {
+            requestAnimationFrame(() => {
+                const plannerBody = document.querySelector('.planner-body');
+                if (plannerBody) plannerBody.scrollTop = Math.max(0, minutes - 130);
+            });
+        }
+        return true;
+    }
+
+    function timeToMins(t) {
+        if (!t) return 0;
+        const [h, m] = t.split(':').map(Number);
+        return h * 60 + (m || 0);
+    }
+
+    function formatDate(d) {
+        return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+
+    function contrastColor(hex) {
+        try {
+            const r = parseInt(hex.slice(1,3),16);
+            const g = parseInt(hex.slice(3,5),16);
+            const b = parseInt(hex.slice(5,7),16);
+            return (r*0.299 + g*0.587 + b*0.114) > 160 ? '#3a3028' : '#f5f0e6';
+        } catch { return '#3a3028'; }
+    }
+
+    let editingId = null;
+
+    // 将弹窗控制类名全部从 '.open' 改为你朋友同款的 '.active'
+    // ==========================================
+    // 自定义选择器状态
+    // ==========================================
+    const PRESET_COLORS = [
+        '#F2D7D9','#E8BFC2','#E2D4E0','#D4DEF0',
+        '#D0E8D8','#B5C4A0','#F5E6C8','#E8D5B0',
+        '#D8C4B8','#C4D4D8','#E0D0E8','#F0E0C8'
+    ];
+    let evDate = '';        // 'MM/DD/YYYY' 格式（兼容原有数据）
+    let evStartTime = '06:00';
+    let evEndTime   = '07:00';
+    let evColor     = '#F2D7D9';
+
+    // ── 日期选择器 ──
+    let cpYear, cpMonth;
+
+    function cpInit() {
+        const now = new Date();
+        cpYear  = now.getFullYear();
+        cpMonth = now.getMonth();
+    }
+
+    function togglePicker(id) {
+        ['date-picker','time-picker','color-picker'].forEach(pid => {
+            if (pid !== id) document.getElementById(pid).classList.remove('cp-open');
+        });
+        document.getElementById(id).classList.toggle('cp-open');
+        if (id === 'date-picker') renderCpDays();
+        if (id === 'time-picker') renderTimePicker();
+        if (id === 'color-picker') renderColorPicker(evColor);
+    }
+
+    function closePickers() {
+        document.getElementById('date-picker').classList.remove('cp-open');
+        document.getElementById('time-picker').classList.remove('cp-open');
+        document.getElementById('color-picker').classList.remove('cp-open');
+    }
+
+    function cpShiftMonth(dir) {
+        cpMonth += dir;
+        if (cpMonth < 0)  { cpMonth = 11; cpYear--; }
+        if (cpMonth > 11) { cpMonth = 0;  cpYear++; }
+        renderCpDays();
+    }
+
+    function renderCpDays() {
+        const MONTHS = ['January','February','March','April','May','June',
+            'July','August','September','October','November','December'];
+        document.getElementById('cp-month-label').textContent = MONTHS[cpMonth] + ' ' + cpYear;
+        const container = document.getElementById('cp-days');
+        container.innerHTML = '';
+        const firstDay = new Date(cpYear, cpMonth, 1).getDay();
+        const offset   = firstDay === 0 ? 6 : firstDay - 1;
+        const total    = new Date(cpYear, cpMonth + 1, 0).getDate();
+        const today    = new Date();
+
+        // 选中日期解析
+        let selDay = -1, selMon = -1, selYr = -1;
+        if (evDate) {
+            const p = evDate.split('/');
+            selMon = parseInt(p[0]) - 1;
+            selDay = parseInt(p[1]);
+            selYr  = parseInt(p[2]);
+        }
+
+        for (let i = 0; i < offset; i++) {
+            const blank = document.createElement('span');
+            container.appendChild(blank);
+        }
+        for (let d = 1; d <= total; d++) {
+            const btn = document.createElement('button');
+            btn.textContent = d;
+            btn.className = 'cp-day';
+            const isToday = (d === today.getDate() && cpMonth === today.getMonth() && cpYear === today.getFullYear());
+            const isSel   = (d === selDay && cpMonth === selMon && cpYear === selYr);
+            if (isToday) btn.classList.add('cp-today');
+            if (isSel)   btn.classList.add('cp-selected');
+            btn.addEventListener('click', () => {
+                evDate = String(cpMonth+1).padStart(2,'0') + '/' + String(d).padStart(2,'0') + '/' + cpYear;
+                document.getElementById('ev-date-display').textContent =
+                    new Date(cpYear, cpMonth, d).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+                closePickers();
+                renderCpDays(); // 刷新选中态
+            });
+            container.appendChild(btn);
+        }
+    }
+
+    // ── 时间选择器 ──
+    function renderTimePicker() {
+        const hours = Array.from({length:24}, (_,i) => String(i).padStart(2,'0'));
+        const mins = Array.from({length:60}, (_,i) => String(i).padStart(2,'0'));
+
+        function buildScroll(containerId, items, current, onSelect) {
+            const el = document.getElementById(containerId);
+            el.innerHTML = '';
+            items.forEach(val => {
+                const btn = document.createElement('button');
+                btn.textContent = val;
+                btn.className = 'cp-time-btn' + (val === current ? ' cp-time-selected' : '');
+                btn.addEventListener('click', () => {
+                    onSelect(val);
+                    renderTimePicker();
+                    updateTimeDisplay();
+                });
+                el.appendChild(btn);
+            });
+            // 滚动到选中项
+            const sel = el.querySelector('.cp-time-selected');
+            if (sel) sel.scrollIntoView({block:'center'});
+        }
+
+        const [sh, sm] = evStartTime.split(':');
+        const [eh, em] = evEndTime.split(':');
+        buildScroll('start-hour-scroll', hours, sh, v => { evStartTime = v + ':' + evStartTime.split(':')[1]; });
+        buildScroll('start-min-scroll',  mins,  sm, v => { evStartTime = evStartTime.split(':')[0] + ':' + v; });
+        buildScroll('end-hour-scroll',   hours, eh, v => { evEndTime   = v + ':' + evEndTime.split(':')[1]; });
+        buildScroll('end-min-scroll',    mins,  em, v => { evEndTime   = evEndTime.split(':')[0] + ':' + v; });
+    }
+
+    function updateTimeDisplay() {
+        document.getElementById('ev-time-display').textContent = evStartTime + ' – ' + evEndTime;
+        const exactStart = document.getElementById('exact-start-time');
+        const exactEnd = document.getElementById('exact-end-time');
+        if (exactStart) exactStart.value = evStartTime;
+        if (exactEnd) exactEnd.value = evEndTime;
+    }
+
+    function setExactTime(which, value) {
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) return;
+        if (which === 'start') evStartTime = value;
+        else evEndTime = value;
+        updateTimeDisplay();
+        renderTimePicker();
+    }
+
+    // ── 颜色选择面板 ──
+    function renderColorPicker(selectedColor) {
+        evColor = selectedColor;
+        // 更新触发行的预览
+        document.getElementById('ev-color-hex').textContent = selectedColor.toUpperCase();
+        document.getElementById('ev-color-swatch-dot').style.background = selectedColor;
+        // 更新面板内预览
+        const previewBox = document.getElementById('ev-color-preview-box');
+        if (previewBox) {
+            previewBox.style.background = selectedColor;
+            document.getElementById('ev-color-preview-hex').textContent = selectedColor.toUpperCase();
+        }
+        // 渲染预设色点
+        const container = document.getElementById('ev-swatches');
+        if (!container) return;
+        container.innerHTML = '';
+        PRESET_COLORS.forEach(col => {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'cp-swatch' + (col.toLowerCase() === selectedColor.toLowerCase() ? ' cp-swatch-selected' : '');
+            dot.style.background = col;
+            dot.title = col;
+            dot.addEventListener('click', () => renderColorPicker(col));
+            container.appendChild(dot);
+        });
+        // 同步原生 color input
+        const native = document.getElementById('ev-color');
+        if (native) {
+            native.value = selectedColor;
+            native.oninput = function() { renderColorPicker(this.value); };
+        }
+    }
+
+    // ── 弹窗开关 ──
+    function openNewEvent(dateStr) {
+        editingId  = null;
+        evDate     = dateStr;
+        evStartTime = '06:00';
+        evEndTime   = '07:00';
+        evColor    = '#F2D7D9';
+        cpInit();
+
+        document.getElementById('event-modal-title').textContent = 'Create Event';
+        document.getElementById('ev-title').value   = '';
+        document.getElementById('ev-details').value = '';
+        document.getElementById('ev-id').value      = '';
+        document.getElementById('ev-delete-btn').style.display = 'none';
+
+        // 显示日期文字
+        if (dateStr) {
+            const p = dateStr.split('/');
+            document.getElementById('ev-date-display').textContent =
+                new Date(parseInt(p[2]), parseInt(p[0])-1, parseInt(p[1]))
+                    .toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+            cpYear  = parseInt(p[2]);
+            cpMonth = parseInt(p[0]) - 1;
+        } else {
+            document.getElementById('ev-date-display').textContent = 'Select date';
+        }
+        updateTimeDisplay();
+        renderColorPicker(evColor);
+        closePickers();
+        document.getElementById('eventModal').classList.add('active');
+    }
+
+    function openEditEvent(ev) {
+        editingId   = ev.id;
+        evDate      = ev.date || '';
+        evStartTime = ev.startTime || '06:00';
+        evEndTime   = ev.endTime   || '07:00';
+        evColor     = ev.color     || '#dce8f8';
+
+        if (evDate) {
+            const p = evDate.split('/');
+            cpYear  = parseInt(p[2]);
+            cpMonth = parseInt(p[0]) - 1;
+        } else {
+            cpInit();
+        }
+
+        document.getElementById('event-modal-title').textContent = 'Edit Event';
+        document.getElementById('ev-title').value   = ev.title   || '';
+        document.getElementById('ev-details').value = ev.details || '';
+        document.getElementById('ev-id').value      = ev.id;
+        document.getElementById('ev-delete-btn').style.display = 'block';
+
+        if (evDate) {
+            const p = evDate.split('/');
+            document.getElementById('ev-date-display').textContent =
+                new Date(parseInt(p[2]), parseInt(p[0])-1, parseInt(p[1]))
+                    .toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+        } else {
+            document.getElementById('ev-date-display').textContent = 'Select date';
+        }
+        updateTimeDisplay();
+        renderColorPicker(evColor);
+        closePickers();
+        document.getElementById('eventModal').classList.add('active');
+    }
+
+    function closeEventModal() {
+        closePickers();
+        document.getElementById('eventModal').classList.remove('active');
+    }
+
+    async function saveEvent() {
+        const title = document.getElementById('ev-title').value.trim();
+        if (!title)  return alert('Please enter a title');
+        if (!evDate) return alert('Please select a date');
+        if (timeToMins(evEndTime) <= timeToMins(evStartTime)) {
+            return alert('End time must be later than start time');
+        }
+        const saveButton = document.getElementById('ev-save-btn');
+        if (saveButton.dataset.busy === 'true') return;
+        saveButton.dataset.busy = 'true';
+        saveButton.disabled = true;
+        try {
+            const existing = PlannerData.getEvents().find(event => String(event.id) === String(editingId));
+            await PlannerData.saveEvent({
+                ...(existing || {}),
+                id: existing?.id,
+                title,
+                details: document.getElementById('ev-details').value,
+                date: evDate,
+                startTime: evStartTime,
+                endTime: evEndTime,
+                color: evColor
+            });
+            closeEventModal();
+            renderWeek();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            saveButton.dataset.busy = 'false';
+            saveButton.disabled = false;
+        }
+    }
+
+    async function deleteEvent() {
+        if (editingId === null) return;
+        const button = document.getElementById('ev-delete-btn');
+        if (button.dataset.busy === 'true') return;
+        button.dataset.busy = 'true';
+        button.disabled = true;
+        try {
+            await PlannerData.deleteEvent(editingId);
+            closeEventModal();
+            renderWeek();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            button.dataset.busy = 'false';
+            button.disabled = false;
+        }
+    }
+
+    // 统一全局加号弹窗管理（跨页面逻辑对齐）
+    function openCreateModal() {
+        resetSelection();
+        document.getElementById('createModal').classList.add('active');
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.remove('active');
+    }
+
+    function selectOption(element, type) {
+        const options = document.querySelectorAll('.option-card');
+        options.forEach(opt => opt.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedType = type;
+    }
+
+    function resetSelection() {
+        selectedType = null;
+        document.querySelectorAll('.option-card').forEach(opt => opt.classList.remove('selected'));
+    }
+
+    function confirmCreation() {
+        if (!selectedType) { alert('Please select an item type first!'); return; }
+        closeCreateModal();
+
+        if (selectedType === 'event') {
+            openNewEvent(formatDate(new Date()));
+        } else if (selectedType === 'todo') {
+            window.location.href = 'todo_list.html?action=new_todo';
+        } else if (selectedType === 'habit') {
+            window.location.href = 'habit_tracker.html?action=new_habit';
+        }
+    }
+
+    // 点击背景空白处自动关闭对应的 Modal
+    window.onclick = function(event) {
+        const modal1 = document.getElementById('createModal');
+        const modal2 = document.getElementById('eventModal');
+        if (event.target === modal1) closeCreateModal();
+        if (event.target === modal2) closeEventModal();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+
+<!-- 登录弹窗 -->
+<div class="auth-overlay" id="modal-login">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeLoginModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">LOGIN</h3>
+        <div class="auth-field">
+            <label>Username</label>
+            <input id="login-username" type="text" placeholder="Enter your username" />
+        </div>
+        <div class="auth-field">
+            <label>Password</label>
+            <input id="login-password" type="password" placeholder="Enter your password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" onclick="doLogin()">LOGIN</button>
+        <p class="auth-switch">Not registered? <a href="#" onclick="openRegisterModal()">Create an account</a></p>
+    </div>
+</div>
+
+<!-- 注册弹窗 -->
+<div class="auth-overlay" id="modal-register">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeRegisterModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">CREATE ACCOUNT</h3>
+        <div class="auth-field">
+            <label>Name</label>
+            <input id="reg-name" type="text" placeholder="Your name" />
+        </div>
+        <div class="auth-field">
+            <label>Email</label>
+            <input id="reg-email" type="email" placeholder="Your email" />
+        </div>
+        <div class="auth-field">
+            <label>Password</label>
+            <input id="reg-password" type="password" placeholder="Create a password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" onclick="doRegister()">CREATE ACCOUNT</button>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="openLoginModal()">Log in</a></p>
+    </div>
+</div>
+
+<!-- 个人资料弹窗 -->
+<div class="auth-overlay" id="modal-profile">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeProfileModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">PROFILE</h3>
+        <div class="auth-avatar">
+            <i class="fa-regular fa-circle-user" style="font-size: 52px;"></i>
+            <span class="auth-avatar-name" id="profile-name-display">—</span>
+        </div>
+        <div class="auth-field">
+            <label>Name</label>
+            <input id="profile-name-input" type="text" placeholder="name" />
+        </div>
+        <div class="auth-field">
+            <label>Email</label>
+            <input id="profile-email-input" type="email" placeholder="email" />
+        </div>
+        <button class="auth-btn auth-btn-logout" onclick="doLogout()">LOG OUT</button>
+    </div>
+</div>
+
+<script src="./js/planner-data.js"></script>
+<script src="./js/auth-ui.js"></script>
+<script src="./js/ui.js"></script>
+</body>
+</html>

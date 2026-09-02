@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Sidebar</title>
+</head>
+<body>
+
+<!-- 侧边栏容器（此文件为早期SVG版本，供参考。实际各页面已内嵌Font Awesome版侧边栏） -->
+<aside class="sidebar">
+
+    <!-- 创建按钮：由加号图标和 "create" 文字组成，点击触发创建弹窗 -->
+    <button class="sidebar-btn" onclick="openCreateModal()">
+        <div class="create-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+        </div>
+        <span>create</span>
+    </button>
+
+    <!-- 侧边栏导航 -->
+    <nav class="sidebar-nav">
+
+        <!-- Calendar -->
+        <a href="Calendar.html" class="nav-item active" data-page="calendar">
+            <div class="nav-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                </svg>
+            </div>
+            <span>Calendar</span>
+        </a>
+
+        <!-- Daily Planner -->
+        <a href="Daily_Planner.html" class="nav-item" data-page="planner">
+            <div class="nav-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+            </div>
+            <span>Daily<br>Planner</span>
+        </a>
+
+        <!-- To-do List -->
+        <a href="todo_list.html" class="nav-item" data-page="todo">
+            <div class="nav-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="5" y="2" width="14" height="20" rx="2"/>
+                    <line x1="9" y1="8" x2="15" y2="8"/>
+                    <line x1="9" y1="12" x2="15" y2="12"/>
+                    <line x1="9" y1="16" x2="12" y2="16"/>
+                </svg>
+            </div>
+            <span>To-do</span>
+        </a>
+
+        <!-- Habit Tracker -->
+        <a href="habit_tracker.html" class="nav-item" data-page="habit">
+            <div class="nav-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="M8 12l3 3 5-5"/>
+                </svg>
+            </div>
+            <span>Habit<br>Tracker</span>
+        </a>
+
+    </nav>
+
+    <!-- 个人资料图标 -->
+    <button class="nav-item profile-btn" onclick="toggleProfile()">
+        <div class="nav-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 24c0-5.5 3.6-11 8-11s8 5.5 8 11"/>
+            </svg>
+        </div>
+    </button>
+
+</aside>
+
+</body>
+</html>

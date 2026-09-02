@@ -1,0 +1,72 @@
+### 注册新用户 (如果已经注册过，会提示邮箱已注册，不用管它)
+POST http://127.0.0.1:3000/api/users/register
+Content-Type: application/json
+
+{
+  "username": "daniu",
+  "email": "daniu@example.com",
+  "password": "mysecretpassword123"
+}
+
+### 登录并自动保存 Token
+POST http://127.0.0.1:3000/api/users/login
+Content-Type: application/json
+
+{
+  "email": "daniu@example.com",
+  "password": "mysecretpassword123"
+}
+
+> {%
+    // 这是一个 IDEA 魔法脚本：自动从登录结果里提取 Token，并存为一个全局变量
+    client.global.set("my_token", response.body.data.token);
+    client.log("Token 已经成功自动保存啦！可以去运行下面的接口了！");
+%}
+
+### 创建一个日程
+POST http://127.0.0.1:3000/api/events
+Content-Type: application/json
+Authorization: Bearer {{my_token}}
+
+{
+  "title": "面试准备",
+  "details": "复习 Node.js 和 MySQL",
+  "event_date": "2026-07-03",
+  "start_time": "14:00:00",
+  "end_time": "16:00:00",
+  "colour": "#F2D7D9"
+}
+
+### 获取所有日程
+GET http://127.0.0.1:3000/api/events
+Authorization: Bearer {{my_token}}
+
+### 创建一条待办事项
+POST http://127.0.0.1:3000/api/todos
+Content-Type: application/json
+Authorization: Bearer {{my_token}}
+
+{
+  "title": "完美整合团队的后端代码！",
+  "color": "#F2D7D9",
+  "due_date": "2026-08-10"
+}
+
+### 创建一个习惯
+POST http://127.0.0.1:3000/api/habits
+Content-Type: application/json
+Authorization: Bearer {{my_token}}
+
+{
+  "title": "每天写100行代码",
+  "color": "#B5C4A0"
+}
+
+### 习惯打卡 (给 id 为 1 的习惯打卡)
+POST http://127.0.0.1:3000/api/habits/1/logs
+Content-Type: application/json
+Authorization: Bearer {{my_token}}
+
+{
+  "completed_date": "2026-08-08"
+}

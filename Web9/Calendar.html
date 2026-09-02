@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <!-- http://127.0.0.1:3000/Daily_Planner.html& http://localhost:3000/Dashboard.html（final）meta元信息，针对移动端配置，让网站在手机/平板也能正常显示 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Calendar</title>
+
+    <!-- 引入全套样式表，保持设计语言高度统一 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="./shared.css"/>
+    <link rel="stylesheet" href="./Calendar.css"/>
+    <link rel="stylesheet" href="./popup.css"/>
+</head>
+
+<body>
+<!-- Sidebar 侧边栏部分（完全同步你朋友的结构，确保全站UI一致） -->
+<aside class="sidebar" id="sidebar">
+    <button class="sidebar-btn" onclick="openCreateModal()">
+        <div class="create-icon">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+        <span>create</span>
+    </button>
+
+    <nav class="sidebar-nav">
+        <a href="Dashboard.html" class="nav-item" data-page="dashboard">
+            <div class="nav-icon"><i class="fa-solid fa-house"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="Calendar.html" class="nav-item" data-page="calendar">
+            <div class="nav-icon">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+            <span>Calendar</span>
+        </a>
+
+        <a href="Daily_Planner.html" class="nav-item" data-page="planner">
+            <div class="nav-icon">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <span>Daily<br>Planner</span>
+        </a>
+
+        <a href="todo_list.html" class="nav-item" data-page="todo">
+            <div class="nav-icon">
+                <i class="fa-solid fa-list-ol"></i>
+            </div>
+            <span>To-do</span>
+        </a>
+
+        <a href="habit_tracker.html" class="nav-item" data-page="habit">
+            <div class="nav-icon">
+                <i class="fa-regular fa-circle-check"></i>
+            </div>
+            <span>Habit<br>Tracker</span>
+        </a>
+    </nav>
+
+    <button class="nav-item profile-btn" onclick="toggleProfile()">
+        <div class="nav-icon">
+            <i class="fa-regular fa-circle-user"></i>
+        </div>
+    </button>
+</aside>
+
+<!-- 主内容区域 -->
+<main class="main-content">
+
+    <!-- 日历切换的头部 -->
+    <div class="cal-header">
+        <button class="nav-arrow" id="prev-btn">&#9664;</button>
+        <!-- 这里的ID和初始化内容修改为 Month Year 格式 -->
+        <h1 class="month-title" id="month-title">Month Year</h1>
+        <button class="nav-arrow" id="next-btn">&#9654;</button>
+    </div>
+
+    <!-- 日历主体网格 -->
+    <div class="cal-grid">
+        <div class="cal-day-header">MONDAY</div>
+        <div class="cal-day-header">TUESDAY</div>
+        <div class="cal-day-header">WEDNESDAY</div>
+        <div class="cal-day-header">THURSDAY</div>
+        <div class="cal-day-header">FRIDAY</div>
+        <div class="cal-day-header">SATURDAY</div>
+        <div class="cal-day-header">SUNDAY</div>
+        <!-- JS注入天数与真实日期匹配 -->
+    </div>
+
+</main>
+
+<div class="modals" id="modals"></div>
+
+<!-- 全局统一的 Create 弹窗结构 -->
+<div id="createModal" class="modal-overlay">
+    <div class="modal-card">
+        <button class="modal-close-btn" onclick="closeCreateModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h3>New</h3>
+
+        <div class="create-options">
+            <div class="option-card" onclick="selectOption(this, 'event')">
+                <span>Event</span>
+            </div>
+
+            <div class="option-card" onclick="selectOption(this, 'todo')">
+                <span>To-do List</span>
+            </div>
+
+            <div class="option-card" onclick="selectOption(this, 'habit')">
+                <span>Habit Tracker</span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="confirm-btn" onclick="confirmCreation()">
+                <i class="fa-solid fa-check"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    //初始化与全局状态管理
+    const MONTHS = ['January','February','March','April','May','June',
+        'July','August','September','October','November','December'];
+
+    let currentYear, currentMonth;
+    let selectedType = null; // 用于记录新建弹窗选中的类型
+
+    async function init() {
+        const now = new Date();
+        currentYear = now.getFullYear();
+        currentMonth = now.getMonth();
+        await refreshCalendarData();
+
+        // 绑定月份切换
+        document.getElementById('prev-btn').addEventListener('click', () => changeMonth(-1));
+        document.getElementById('next-btn').addEventListener('click', () => changeMonth(1));
+    }
+
+    async function changeMonth(dir) {
+        currentMonth += dir;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        await refreshCalendarData();
+    }
+
+    async function refreshCalendarData() {
+        const start = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
+        const endDay = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const end = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+        try {
+            await Promise.all([
+                PlannerData.loadEvents(start, end),
+                PlannerData.loadTodos(),
+                PlannerData.loadHabits(start, end)
+            ]);
+        } catch (error) {
+            console.error(error);
+        }
+        renderCalendar();
+    }
+
+
+    function renderCalendar() {
+        // 1. 统一头部名称显示为 "Month Year" (例：May 2026)
+        document.getElementById('month-title').textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+
+        const grid = document.querySelector('.cal-grid');
+        // 清理旧的单元格（保留前7个周一到周日的Header）
+        while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+        // 计算当前月第一天和总天数
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay(); // 0=周日
+        const offset = (firstDay === 0) ? 6 : firstDay - 1; // 转换为以周一开头的偏移量
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        const today = new Date();
+        const todayStr = today.toDateString(); // "Tue Jun 09 2026"
+
+        const events = getEvents();
+        const habits = PlannerData.getHabits();
+
+        // 渲染月初的空白单元格
+        for (let i = 0; i < offset; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cal-cell empty';
+            grid.appendChild(cell);
+        }
+
+        // 动态生成当月的每一天
+        for (let d = 1; d <= daysInMonth; d++) {
+            const cell = document.createElement('div');
+            cell.className = 'cal-cell';
+
+            // 构建当前循环这一天的 Date 对象
+            const cellDate = new Date(currentYear, currentMonth, d);
+            const cellDateStr = cellDate.toDateString(); // 当前格子的标准日期文本
+
+            if (cellDateStr === todayStr) {
+                cell.classList.add('current-day');
+            }
+
+            // 写入日期数字
+            cell.innerHTML = `<div class="day-num">${d}</div>`;
+
+            const oldFormatStr = `${String(currentMonth+1).padStart(2,'0')}/${String(d).padStart(2,'0')}/${currentYear}`;
+            const dayEvents = events.filter(e => e.date === oldFormatStr);
+            dayEvents.slice(0, 3).forEach(ev => {
+                const chip = document.createElement('span');
+                chip.className = 'event-chip';
+                chip.style.background = ev.color || '#f2d7d9';
+                chip.textContent = ev.title;
+                cell.appendChild(chip);
+            });
+
+            const dotsWrapper = document.createElement('div');
+            dotsWrapper.className = 'calendar-habit-dots'; // 可以在 CSS 里给它加个 flex 布局
+
+            habits.forEach(habit => {
+                if (habit.completedDates && habit.completedDates.includes(cellDateStr)) {
+                    const dot = document.createElement('span');
+                    dot.className = 'calendar-habit-dot';
+                    dot.style.backgroundColor = habit.color; // 直接借用你朋友设定的习惯颜色！
+                    dot.title = habit.title; // 鼠标悬停显示习惯名字
+                    dotsWrapper.appendChild(dot);
+                }
+            });
+            cell.appendChild(dotsWrapper);
+
+            grid.appendChild(cell);
+        }
+
+        // 渲染月末的空白单元格，补齐最后一行
+        const total = offset + daysInMonth;
+        const remainder = total % 7;
+        if (remainder !== 0) {
+            for (let i = 0; i < (7 - remainder); i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cal-cell empty';
+                grid.appendChild(cell);
+            }
+        }
+    }
+
+    function getEvents() {
+        const ev = PlannerData.getEvents();
+        const todos = PlannerData.getTodos().filter(todo => !todo.done);
+        const todoEv = todos.map(todo => ({
+            title: todo.title,
+            date: PlannerData.toDisplayDate(todo.date),
+            color: todo.color
+        }));
+        return [...ev, ...todoEv];
+    }
+
+    // 统一全局弹窗管理 (Create Modal)
+    function openCreateModal() {
+        resetSelection();
+        document.getElementById('createModal').classList.add('active');
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.remove('active');
+    }
+
+    function selectOption(element, type) {
+        const options = document.querySelectorAll('.option-card');
+        options.forEach(opt => opt.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedType = type;
+    }
+
+    function resetSelection() {
+        selectedType = null;
+        document.querySelectorAll('.option-card').forEach(opt => opt.classList.remove('selected'));
+    }
+
+    function confirmCreation() {
+        if (!selectedType) { alert('Please select an item type first!'); return; }
+        closeCreateModal();
+
+        // 根据选中类型跨页面优雅跳转，如果是 habit，直接带参数跳过去唤醒他写好的弹窗！
+        if (selectedType === 'todo') {
+            window.location.href = 'todo_list.html?action=new_todo';
+        } else if (selectedType === 'event') {
+            window.location.href = 'Daily_Planner.html?action=new_event';
+        } else if (selectedType === 'habit') {
+            window.location.href = 'habit_tracker.html?action=new_habit';
+        }
+    }
+
+    // 点击空白处关闭弹窗
+    window.onclick = function(event) {
+        const modal = document.getElementById('createModal');
+        if (event.target === modal) closeCreateModal();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+
+
+<!--登录 / 注册 / 个人资料 弹窗-->
+
+<!-- 登录弹窗 -->
+<div class="auth-overlay" id="modal-login">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeLoginModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">LOGIN</h3>
+        <div class="auth-field">
+            <label>Username</label>
+            <input id="login-username" type="text" placeholder="Enter your username" />
+        </div>
+        <div class="auth-field">
+            <label>Password</label>
+            <input id="login-password" type="password" placeholder="Enter your password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" onclick="doLogin()">LOGIN</button>
+        <p class="auth-switch">Not registered? <a href="#" onclick="openRegisterModal()">Create an account</a></p>
+    </div>
+</div>
+
+<!-- 注册弹窗 -->
+<div class="auth-overlay" id="modal-register">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeRegisterModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">CREATE ACCOUNT</h3>
+        <div class="auth-field">
+            <label>Name</label>
+            <input id="reg-name" type="text" placeholder="Your name" />
+        </div>
+        <div class="auth-field">
+            <label>Email</label>
+            <input id="reg-email" type="email" placeholder="Your email" />
+        </div>
+        <div class="auth-field">
+            <label>Password</label>
+            <input id="reg-password" type="password" placeholder="Create a password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" onclick="doRegister()">CREATE ACCOUNT</button>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="openLoginModal()">Log in</a></p>
+    </div>
+</div>
+
+<!-- 个人资料弹窗 -->
+<div class="auth-overlay" id="modal-profile">
+    <div class="auth-card">
+        <button class="auth-close-btn" onclick="closeProfileModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 class="auth-title">PROFILE</h3>
+        <div class="auth-avatar">
+            <i class="fa-regular fa-circle-user" style="font-size: 52px;"></i>
+            <span class="auth-avatar-name" id="profile-name-display">—</span>
+        </div>
+        <div class="auth-field">
+            <label>Name</label>
+            <input id="profile-name-input" type="text" placeholder="name" />
+        </div>
+        <div class="auth-field">
+            <label>Email</label>
+            <input id="profile-email-input" type="email" placeholder="email" />
+        </div>
+        <button class="auth-btn auth-btn-logout" onclick="doLogout()">LOG OUT</button>
+    </div>
+</div>
+
+<script src="./js/planner-data.js"></script>
+<script src="./js/auth-ui.js"></script>
+<script src="./js/ui.js"></script>
+</body>
+</html>
